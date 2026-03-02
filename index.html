@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bar Manager Pro 🍸</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDltFzvqTTVzJuIY7m0_FXUGCCdLdltfbY",
+    authDomain: "bar-manager-7f099.firebaseapp.com",
+    projectId: "bar-manager-7f099",
+    storageBucket: "bar-manager-7f099.firebasestorage.app",
+    messagingSenderId: "490116095875",
+    appId: "1:490116095875:web:c59cf07c0764cc7e8f20b6",
+    measurementId: "G-D8QMW90222"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+
+  // Expose auth functions to global scope for use in non-module scripts
+  window._fbAuth = auth;
+  window._fbSignIn = (email, password) => signInWithEmailAndPassword(auth, email, password);
+  window._fbSignOut = () => signOut(auth);
+  window._fbOnAuthStateChanged = (cb) => onAuthStateChanged(auth, cb);
+
+  // Watch auth state on load
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      window._currentFirebaseUser = user;
+      // If app not yet shown, show it
+      if (document.getElementById('app').style.display !== 'block') {
+        _showApp(user);
+      }
+    } else {
+      window._currentFirebaseUser = null;
+      _showLogin();
+    }
+  });
+</script>
+<style>
+:root {
+  --night: #0a0a12;
+  --deep: #111122;
+  --card: #16162a;
+  --surface: #1e1e35;
+  --border: rgba(255,255,255,0.07);
+  --gold: #f5c842;
+  --amber: #ff9f43;
+  --rose: #ff6b9d;
+  --teal: #00d2c8;
+  --violet: #a855f7;
+  --blue: #3b82f6;
+  --green: #10b981;
+  --red: #ef4444;
+  --text: #e8e8f0;
+  --muted: #7070a0;
+  --radius: 14px;
+  --glow: 0 0 40px rgba(245,200,66,0.15);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--night); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+/* ── PARTICLES ── */
+#particles { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.particle { position:absolute; border-radius:50%; animation:float-particle linear infinite; opacity:0; }
+@keyframes float-particle {
+  0% { transform:translateY(100vh) scale(0); opacity:0; }
+  10% { opacity:0.6; }
+  90% { opacity:0.2; }
+  100% { transform:translateY(-100px) scale(1.5); opacity:0; }
+}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen {
+  position:fixed; inset:0; z-index:1000;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(ellipse at center, #1a0a2e 0%, var(--night) 70%);
+  transition:all 0.8s cubic-bezier(0.76,0,0.24,1);
+}
+#loginScreen.hiding {
+  transform:scale(1.05);
+  opacity:0;
+  pointer-events:none;
+}
+.login-box {
+  background:rgba(22,22,42,0.95);
+  border:1px solid rgba(245,200,66,0.2);
+  border-radius:24px;
+  padding:3rem 3.5rem;
+  width:90%; max-width:420px;
+  box-shadow:0 40px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  animation:loginAppear 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+  text-align:center;
+}
+@keyframes loginAppear {
+  from { opacity:0; transform:translateY(40px) scale(0.95); }
+  to { opacity:1; transform:translateY(0) scale(1); }
+}
+.login-logo {
+  font-size:4rem;
+  animation:spin-slow 8s linear infinite;
+  display:block; margin-bottom:0.5rem;
+}
+@keyframes spin-slow {
+  0%,100% { transform:rotate(-5deg) scale(1); }
+  50% { transform:rotate(5deg) scale(1.1); }
+}
+.login-title {
+  font-family:'Playfair Display',serif;
+  font-size:2rem; font-weight:900;
+  background:linear-gradient(135deg, var(--gold), var(--amber));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  margin-bottom:0.25rem;
+}
+.login-sub { color:var(--muted); font-size:0.9rem; margin-bottom:2rem; }
+.login-form { display:flex; flex-direction:column; gap:1rem; }
+.login-input-wrap { position:relative; }
+.login-input-wrap span { position:absolute; left:1rem; top:50%; transform:translateY(-50%); font-size:1.1rem; }
+.login-input {
+  width:100%; padding:0.9rem 1rem 0.9rem 2.8rem;
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text); font-size:1rem; font-family:'DM Sans',sans-serif;
+  transition:all 0.3s;
+}
+.login-input:focus { outline:none; border-color:var(--gold); background:rgba(245,200,66,0.05); box-shadow:0 0 0 3px rgba(245,200,66,0.1); }
+.login-btn {
+  padding:1rem; border:none; border-radius:10px;
+  background:linear-gradient(135deg, var(--gold), var(--amber));
+  color:#000; font-weight:700; font-size:1rem; cursor:pointer;
+  transition:all 0.3s; letter-spacing:0.05em; text-transform:uppercase;
+  position:relative; overflow:hidden;
+}
+.login-btn:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(245,200,66,0.4); }
+.login-btn::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform:translateX(-100%);
+}
+.login-btn:hover::after { animation:shimmer 0.6s ease; }
+@keyframes shimmer { to { transform:translateX(100%); } }
+.login-hint { color:var(--muted); font-size:0.8rem; margin-top:1rem; }
+.login-hint strong { color:var(--gold); }
+.login-error { color:var(--rose); font-size:0.85rem; padding:0.5rem; background:rgba(255,107,157,0.1); border-radius:8px; display:none; }
+
+/* ── LOGOUT OVERLAY ── */
+#logoutOverlay {
+  position:fixed; inset:0; z-index:999;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:var(--night);
+  opacity:0; pointer-events:none;
+  transition:opacity 0.5s;
+}
+#logoutOverlay.visible { opacity:1; pointer-events:all; }
+.logout-emoji { font-size:4rem; animation:goodbye 1s ease infinite alternate; }
+@keyframes goodbye { from { transform:scale(1) rotate(-5deg); } to { transform:scale(1.2) rotate(5deg); } }
+.logout-text { font-family:'Playfair Display',serif; font-size:1.8rem; color:var(--gold); margin-top:1rem; }
+
+/* ── APP LAYOUT ── */
+#app { display:none; min-height:100vh; position:relative; z-index:1; }
+#app.visible { display:block; animation:appReveal 0.6s ease both; }
+@keyframes appReveal { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── NAVBAR ── */
+.navbar {
+  position:sticky; top:0; z-index:100;
+  background:rgba(10,10,18,0.95);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0.75rem 0;
+}
+.nav-container { max-width:1400px; margin:0 auto; padding:0 2rem; display:flex; justify-content:space-between; align-items:center; }
+.nav-brand { display:flex; align-items:center; gap:0.75rem; cursor:pointer; }
+.brand-icon { font-size:1.8rem; }
+.nav-brand-title { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700; color:var(--gold); }
+.nav-menu { display:flex; gap:0.25rem; align-items:center; flex-wrap:wrap; }
+.nav-link {
+  display:flex; align-items:center; gap:0.4rem;
+  color:var(--muted); text-decoration:none;
+  padding:0.6rem 1rem; border-radius:8px;
+  font-size:0.9rem; font-weight:500;
+  transition:all 0.3s; border:1px solid transparent;
+}
+.nav-link:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+.nav-link.active { color:var(--gold); border-color:rgba(245,200,66,0.2); background:rgba(245,200,66,0.08); }
+.nav-right { display:flex; align-items:center; gap:1rem; }
+.user-badge { display:flex; align-items:center; gap:0.5rem; padding:0.4rem 0.8rem; background:rgba(255,255,255,0.05); border-radius:20px; font-size:0.85rem; }
+.user-avatar { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg, var(--gold), var(--amber)); display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; color:#000; }
+.logout-btn {
+  padding:0.5rem 1rem; border:1px solid rgba(239,68,68,0.3);
+  background:transparent; color:var(--red); border-radius:8px;
+  cursor:pointer; font-size:0.85rem; font-family:'DM Sans',sans-serif;
+  transition:all 0.3s;
+}
+.logout-btn:hover { background:rgba(239,68,68,0.1); border-color:var(--red); }
+
+/* ── MAIN ── */
+.main-content { max-width:1400px; margin:0 auto; padding:2rem; }
+.page { display:none; }
+.page.active { display:block; animation:pageIn 0.4s ease both; }
+@keyframes pageIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.page-header { margin-bottom:2rem; }
+.page-title { font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:900; color:var(--text); }
+.page-title span { color:var(--gold); }
+.page-sub { color:var(--muted); margin-top:0.3rem; }
+.page-header-row { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+
+/* ── STATS ── */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.2rem; margin-bottom:2rem; }
+.stat-card {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:1.5rem; display:flex; align-items:center; gap:1.2rem;
+  transition:all 0.3s; position:relative; overflow:hidden;
+  animation:slideUp 0.5s ease both;
+}
+.stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.stat-card.s-gold::before { background:linear-gradient(90deg, var(--gold), var(--amber)); }
+.stat-card.s-green::before { background:linear-gradient(90deg, var(--green), var(--teal)); }
+.stat-card.s-violet::before { background:linear-gradient(90deg, var(--violet), var(--blue)); }
+.stat-card.s-rose::before { background:linear-gradient(90deg, var(--rose), var(--amber)); }
+.stat-card:hover { transform:translateY(-4px); border-color:rgba(255,255,255,0.12); box-shadow:0 12px 40px rgba(0,0,0,0.4); }
+.stat-icon { font-size:2.2rem; }
+.stat-value { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:var(--text); }
+.stat-label { color:var(--muted); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; }
+@keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── CARDS GRID ── */
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(350px, 1fr)); gap:1.5rem; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:all 0.3s; }
+.card:hover { box-shadow:0 16px 50px rgba(0,0,0,0.4); }
+.card-header { padding:1.2rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.6rem; }
+.card-header h2 { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--text); }
+.card-body { padding:1.5rem; }
+
+/* ── TABLE ── */
+.table-wrap { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.data-table { width:100%; border-collapse:collapse; }
+.data-table thead { background:rgba(255,255,255,0.03); }
+.data-table th { padding:1rem 1.2rem; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); font-weight:600; border-bottom:1px solid var(--border); }
+.data-table td { padding:0.9rem 1.2rem; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.9rem; }
+.data-table tbody tr:last-child td { border-bottom:none; }
+.data-table tbody tr { transition:background 0.2s; }
+.data-table tbody tr:hover { background:rgba(255,255,255,0.03); }
+
+/* ── BUTTONS ── */
+.btn { padding:0.65rem 1.3rem; border:none; border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.85rem; font-weight:600; transition:all 0.25s; display:inline-flex; align-items:center; gap:0.4rem; }
+.btn:hover { transform:translateY(-1px); }
+.btn-gold { background:linear-gradient(135deg, var(--gold), var(--amber)); color:#000; }
+.btn-gold:hover { box-shadow:0 6px 20px rgba(245,200,66,0.35); }
+.btn-green { background:rgba(16,185,129,0.15); color:var(--green); border:1px solid rgba(16,185,129,0.3); }
+.btn-green:hover { background:rgba(16,185,129,0.25); }
+.btn-red { background:rgba(239,68,68,0.12); color:var(--red); border:1px solid rgba(239,68,68,0.25); }
+.btn-red:hover { background:rgba(239,68,68,0.22); }
+.btn-ghost { background:rgba(255,255,255,0.06); color:var(--text); border:1px solid var(--border); }
+.btn-ghost:hover { background:rgba(255,255,255,0.1); }
+.btn-sm { padding:0.4rem 0.8rem; font-size:0.8rem; }
+
+/* ── BADGE ── */
+.badge { display:inline-flex; align-items:center; gap:0.3rem; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.75rem; font-weight:600; }
+.badge-green { background:rgba(16,185,129,0.15); color:var(--green); }
+.badge-red { background:rgba(239,68,68,0.12); color:var(--red); }
+.badge-gold { background:rgba(245,200,66,0.15); color:var(--gold); }
+.badge-violet { background:rgba(168,85,247,0.15); color:var(--violet); }
+
+/* ── TOP PRODUCTS ── */
+.top-list { display:flex; flex-direction:column; gap:0.7rem; }
+.top-item { display:flex; align-items:center; gap:0.8rem; padding:0.6rem 0; border-bottom:1px solid var(--border); }
+.top-rank { width:24px; height:24px; border-radius:50%; background:linear-gradient(135deg, var(--gold), var(--amber)); color:#000; font-weight:700; font-size:0.75rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.top-name { flex:1; font-weight:500; }
+.top-qty { color:var(--muted); font-size:0.85rem; }
+
+/* ── RECIPES ── */
+.recipes-controls { display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap; align-items:center; }
+.search-input {
+  flex:1; min-width:200px; padding:0.7rem 1rem 0.7rem 2.5rem;
+  background:var(--card); border:1px solid var(--border); border-radius:10px;
+  color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.9rem;
+  position:relative; transition:all 0.3s;
+}
+.search-wrap { position:relative; flex:1; min-width:200px; }
+.search-wrap::before { content:'🔍'; position:absolute; left:0.75rem; top:50%; transform:translateY(-50%); font-size:0.9rem; }
+.search-input:focus { outline:none; border-color:rgba(245,200,66,0.4); box-shadow:0 0 0 3px rgba(245,200,66,0.08); }
+.cat-filters { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.cat-btn { padding:0.4rem 0.9rem; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:0.8rem; font-family:'DM Sans',sans-serif; transition:all 0.25s; }
+.cat-btn:hover { color:var(--text); border-color:rgba(255,255,255,0.2); }
+.cat-btn.active { background:rgba(245,200,66,0.12); color:var(--gold); border-color:rgba(245,200,66,0.3); }
+
+.recipes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.2rem; }
+.recipe-card {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; cursor:pointer; transition:all 0.3s;
+  animation:cardIn 0.4s ease both;
+}
+@keyframes cardIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+.recipe-card:hover { transform:translateY(-4px) scale(1.01); border-color:rgba(245,200,66,0.2); box-shadow:0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(245,200,66,0.1); }
+.recipe-thumb {
+  height:80px; display:flex; align-items:center; justify-content:center;
+  font-size:3rem; position:relative; overflow:hidden;
+}
+.recipe-thumb::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg, transparent 60%, var(--card)); }
+.recipe-body { padding:1rem; }
+.recipe-name { font-family:'Playfair Display',serif; font-weight:700; font-size:1rem; margin-bottom:0.4rem; }
+.recipe-meta { display:flex; justify-content:space-between; align-items:center; }
+.recipe-count { color:var(--muted); font-size:0.8rem; }
+
+/* ── RECIPE MODAL ── */
+.modal { position:fixed; inset:0; z-index:500; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+.modal.active { opacity:1; pointer-events:all; }
+.modal-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); }
+.modal-box {
+  background:var(--card); border:1px solid var(--border); border-radius:20px;
+  width:100%; max-width:580px; max-height:85vh; overflow-y:auto;
+  position:relative; z-index:1;
+  transform:translateY(30px) scale(0.97); transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal.active .modal-box { transform:translateY(0) scale(1); }
+.modal-header { padding:1.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; position:sticky; top:0; background:var(--card); border-radius:20px 20px 0 0; z-index:1; }
+.modal-close { background:rgba(255,255,255,0.07); border:none; color:var(--text); width:32px; height:32px; border-radius:50%; cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center; transition:all 0.2s; flex-shrink:0; }
+.modal-close:hover { background:rgba(239,68,68,0.2); color:var(--red); transform:rotate(90deg); }
+.modal-body { padding:1.5rem; }
+.recipe-emoji-big { font-size:3rem; margin-bottom:0.5rem; display:block; }
+.modal-recipe-name { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; }
+.section-title { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--gold); margin:1.5rem 0 0.75rem; font-weight:700; }
+.ingredient-list { display:flex; flex-direction:column; gap:0.4rem; }
+.ingredient-item { display:flex; align-items:center; gap:0.7rem; padding:0.5rem 0.75rem; background:rgba(255,255,255,0.04); border-radius:8px; font-size:0.9rem; }
+.ing-dot { width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0; }
+.steps-list { display:flex; flex-direction:column; gap:0.75rem; }
+.step-item { display:flex; gap:0.75rem; padding:0.75rem; background:rgba(255,255,255,0.04); border-radius:8px; font-size:0.9rem; line-height:1.5; }
+.step-num { width:24px; height:24px; border-radius:50%; background:linear-gradient(135deg, var(--gold), var(--amber)); color:#000; font-weight:700; font-size:0.75rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+
+/* ── VENTE MODAL FORM ── */
+.form-group { margin-bottom:1.2rem; }
+.form-label { display:block; margin-bottom:0.5rem; font-size:0.85rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+.form-ctrl {
+  width:100%; padding:0.75rem 1rem;
+  background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:10px;
+  color:var(--text); font-size:0.95rem; font-family:'DM Sans',sans-serif; transition:all 0.3s;
+}
+.form-ctrl:focus { outline:none; border-color:rgba(245,200,66,0.4); background:rgba(245,200,66,0.04); }
+.form-ctrl option { background:var(--deep); color:var(--text); }
+
+/* ── STOCK STATUS ── */
+.stock-bar-wrap { display:flex; align-items:center; gap:0.6rem; }
+.stock-bar { height:6px; border-radius:3px; background:rgba(255,255,255,0.08); flex:1; overflow:hidden; }
+.stock-bar-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+
+/* ── EQUIPE ── */
+.member-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:1rem; }
+.member-card {
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:1.5rem; text-align:center; transition:all 0.3s;
+}
+.member-card:hover { transform:translateY(-3px); }
+.member-avatar { width:60px; height:60px; border-radius:50%; margin:0 auto 0.75rem; display:flex; align-items:center; justify-content:center; font-size:1.5rem; }
+.member-name { font-family:'Playfair Display',serif; font-weight:700; font-size:1rem; margin-bottom:0.2rem; }
+.member-role { color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem; }
+.member-hours { font-size:0.8rem; color:var(--muted); margin-bottom:1rem; }
+
+/* ── TOAST ── */
+.toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; display:flex; flex-direction:column; gap:0.5rem; }
+.toast {
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  padding:0.9rem 1.3rem; min-width:260px; max-width:340px;
+  display:flex; align-items:center; gap:0.8rem; box-shadow:0 8px 30px rgba(0,0,0,0.4);
+  animation:toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes toastIn { from { opacity:0; transform:translateX(100px); } to { opacity:1; transform:translateX(0); } }
+.toast.leaving { animation:toastOut 0.3s ease forwards; }
+@keyframes toastOut { to { opacity:0; transform:translateX(100px); } }
+.toast-success { border-left:3px solid var(--green); }
+.toast-error { border-left:3px solid var(--red); }
+.toast-info { border-left:3px solid var(--blue); }
+
+/* ── EMPTY STATE ── */
+.empty-state { text-align:center; padding:4rem 2rem; color:var(--muted); }
+.empty-icon { font-size:3rem; margin-bottom:1rem; }
+.empty-text { font-size:1rem; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.2); }
+
+/* ── WELCOME CARD ── */
+.welcome-card { background:linear-gradient(135deg, rgba(245,200,66,0.1), rgba(255,159,67,0.05)); border:1px solid rgba(245,200,66,0.2); border-radius:var(--radius); padding:1.5rem; margin-bottom:2rem; display:flex; align-items:center; gap:1.5rem; }
+.welcome-text h3 { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--gold); margin-bottom:0.3rem; }
+.welcome-text p { color:var(--muted); font-size:0.9rem; }
+.welcome-time { font-size:2.5rem; }
+
+@media(max-width:768px) {
+  .nav-menu { display:none; }
+  .main-content { padding:1rem; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+  .recipes-grid { grid-template-columns:1fr 1fr; }
+  .login-box { padding:2rem; }
+}
+@media(max-width:480px) {
+  .stats-grid, .recipes-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- PARTICLES -->
+<div id="particles"></div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <span class="login-logo">🍸</span>
+    <h1 class="login-title">Bar Manager Pro</h1>
+    <p class="login-sub">Connectez-vous pour accéder au tableau de bord</p>
+    <div class="login-form">
+      <div class="login-input-wrap">
+        <span>📧</span>
+        <input type="email" id="loginUser" class="login-input" placeholder="Adresse e-mail" autocomplete="email" />
+      </div>
+      <div class="login-input-wrap">
+        <span>🔑</span>
+        <input type="password" id="loginPass" class="login-input" placeholder="Mot de passe" autocomplete="current-password" />
+      </div>
+      <div class="login-error" id="loginError">❌ Email ou mot de passe incorrect</div>
+      <button class="login-btn" id="loginBtn" onclick="tryLogin()">
+        <span id="loginBtnText">Se connecter →</span>
+        <span id="loginBtnSpinner" style="display:none">⏳ Connexion en cours...</span>
+      </button>
+    </div>
+    <p class="login-hint">Connectez-vous avec votre compte <strong>Firebase</strong></p>
+  </div>
+</div>
+
+<!-- LOGOUT OVERLAY -->
+<div id="logoutOverlay">
+  <div class="logout-emoji">👋</div>
+  <div class="logout-text">À bientôt !</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand" onclick="navigateTo('dashboard')">
+        <span class="brand-icon">🍸</span>
+        <span class="nav-brand-title">Bar Manager Pro</span>
+      </div>
+      <div class="nav-menu">
+        <a href="#" data-page="dashboard" class="nav-link active">📊 Dashboard</a>
+        <a href="#" data-page="ventes" class="nav-link">💰 Ventes</a>
+        <a href="#" data-page="stock" class="nav-link">📦 Stock</a>
+        <a href="#" data-page="equipe" class="nav-link">👥 Équipe</a>
+        <a href="#" data-page="recettes" class="nav-link">📋 Recettes</a>
+      </div>
+      <div class="nav-right">
+        <div class="user-badge">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <span id="userName">Admin</span>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="page active">
+      <div class="page-header">
+        <h1 class="page-title">Bonjour, <span id="dashName">Admin</span> 👋</h1>
+        <p class="page-sub">Vue d'ensemble de votre activité en temps réel</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card s-gold" style="animation-delay:0.1s">
+          <div class="stat-icon">💰</div>
+          <div>
+            <div class="stat-value" id="totalVentes">0€</div>
+            <div class="stat-label">Chiffre d'affaires</div>
+          </div>
+        </div>
+        <div class="stat-card s-green" style="animation-delay:0.2s">
+          <div class="stat-icon">📈</div>
+          <div>
+            <div class="stat-value" id="nbVentes">0</div>
+            <div class="stat-label">Ventes du jour</div>
+          </div>
+        </div>
+        <div class="stat-card s-violet" style="animation-delay:0.3s">
+          <div class="stat-icon">👥</div>
+          <div>
+            <div class="stat-value" id="equipePresente">0/0</div>
+            <div class="stat-label">Équipe présente</div>
+          </div>
+        </div>
+        <div class="stat-card s-rose" style="animation-delay:0.4s">
+          <div class="stat-icon">⚠️</div>
+          <div>
+            <div class="stat-value" id="stockFaible">0</div>
+            <div class="stat-label">Stocks faibles</div>
+          </div>
+        </div>
+      </div>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-header"><span>🏆</span><h2>Top 5 Produits</h2></div>
+          <div class="card-body" id="topProduits"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>📋</span><h2>Recettes disponibles</h2></div>
+          <div class="card-body">
+            <p style="color:var(--muted); margin-bottom:1rem; font-size:0.9rem;">47 fiches recettes importées pour l'été 2025</p>
+            <div style="display:flex; flex-wrap:wrap; gap:0.5rem;" id="catBadges"></div>
+            <button class="btn btn-gold" style="margin-top:1.5rem; width:100%;" onclick="navigateTo('recettes')">Voir toutes les recettes →</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>📦</span><h2>Alertes Stock</h2></div>
+          <div class="card-body" id="stockAlerts"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>👥</span><h2>Équipe ce soir</h2></div>
+          <div class="card-body" id="equipeResume"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VENTES -->
+    <section id="ventes" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">💰 <span>Ventes</span></h1>
+          <p class="page-sub">Gérez toutes les transactions</p>
+        </div>
+        <button class="btn btn-gold" onclick="openAddVente()">+ Nouvelle Vente</button>
+      </div>
+      <br>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Produit</th><th>Qté</th><th>Prix unit.</th><th>Total</th><th>Actions</th></tr></thead>
+          <tbody id="ventesBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STOCK -->
+    <section id="stock" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">📦 <span>Stock</span></h1>
+          <p class="page-sub">Suivez votre inventaire</p>
+        </div>
+        <button class="btn btn-gold" onclick="openAddProduit()">+ Nouveau Produit</button>
+      </div>
+      <br>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Produit</th><th>Quantité</th><th>Seuil min</th><th>Prix</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="stockBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section id="equipe" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">👥 <span>Équipe</span></h1>
+          <p class="page-sub">Gérez votre personnel</p>
+        </div>
+        <button class="btn btn-gold" onclick="openAddMembre()">+ Nouveau Membre</button>
+      </div>
+      <br>
+      <div class="member-grid" id="equipeGrid"></div>
+    </section>
+
+    <!-- RECETTES -->
+    <section id="recettes" class="page">
+      <div class="page-header">
+        <h1 class="page-title">📋 Fiches <span>Recettes</span></h1>
+        <p class="page-sub">47 recettes pour l'été 2025 — Cliquez pour voir les détails</p>
+      </div>
+      <div class="recipes-controls">
+        <div class="search-wrap">
+          <input type="text" class="search-input" id="recetteSearch" placeholder="Rechercher une recette..." oninput="filterRecettes()" />
+        </div>
+        <div class="cat-filters">
+          <button class="cat-btn active" data-cat="all" onclick="setCat(this,'all')">🍹 Tout</button>
+          <button class="cat-btn" data-cat="cocktail" onclick="setCat(this,'cocktail')">🍸 Cocktails</button>
+          <button class="cat-btn" data-cat="force" onclick="setCat(this,'force')">❄️ Forces</button>
+          <button class="cat-btn" data-cat="smoothie" onclick="setCat(this,'smoothie')">🥤 Smoothies</button>
+          <button class="cat-btn" data-cat="bubble_tea" onclick="setCat(this,'bubble_tea')">🧋 Bubble Tea</button>
+          <button class="cat-btn" data-cat="the_glace" onclick="setCat(this,'the_glace')">🍵 Thés glacés</button>
+          <button class="cat-btn" data-cat="cafe" onclick="setCat(this,'cafe')">☕ Cafés</button>
+          <button class="cat-btn" data-cat="dessert" onclick="setCat(this,'dessert')">🍮 Desserts</button>
+        </div>
+      </div>
+      <div class="recipes-grid" id="recipesGrid"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-overlay" onclick="closeModal()"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <div id="modalEmoji" style="font-size:2rem;margin-bottom:0.3rem"></div>
+        <div id="modalTitle" style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+// Auth handled by Firebase
+let activeCat = 'all';
+
+let appData = {
+  ventes: [
+    { id:1, produit:'Mojito', quantite:15, prix:8, date:new Date() },
+    { id:2, produit:'Bière Pression', quantite:25, prix:5, date:new Date() },
+    { id:3, produit:'Whisky', quantite:8, prix:12, date:new Date() },
+    { id:4, produit:'Coca-Cola', quantite:20, prix:3, date:new Date() },
+    { id:5, produit:'Vin Rouge', quantite:10, prix:6, date:new Date() }
+  ],
+  stock: [
+    { id:1, produit:'Mojito', quantite:50, quantiteMin:20, prix:8 },
+    { id:2, produit:'Bière Pression', quantite:100, quantiteMin:30, prix:5 },
+    { id:3, produit:'Whisky', quantite:15, quantiteMin:10, prix:12 },
+    { id:4, produit:'Coca-Cola', quantite:80, quantiteMin:40, prix:3 },
+    { id:5, produit:'Vin Rouge', quantite:25, quantiteMin:15, prix:6 },
+    { id:6, produit:'Prosecco', quantite:12, quantiteMin:10, prix:9 },
+    { id:7, produit:'Gin', quantite:8, quantiteMin:10, prix:14 },
+    { id:8, produit:'Vodka', quantite:20, quantiteMin:15, prix:11 }
+  ],
+  equipe: [
+    { id:1, nom:'Jean Dupont', poste:'Barman', actif:true, horaire:'18h-02h', avatar:'👨‍🍳' },
+    { id:2, nom:'Marie Martin', poste:'Serveuse', actif:true, horaire:'20h-04h', avatar:'👩‍💼' },
+    { id:3, nom:'Pierre Durand', poste:'Manager', actif:true, horaire:'17h-01h', avatar:'👨‍💼' },
+    { id:4, nom:'Sophie Bernard', poste:'Serveuse', actif:false, horaire:'18h-02h', avatar:'👩‍🍳' }
+  ]
+};
+
+const RECIPES = [{"id":1,"name":"Gin tonic pêche","ingredients":["4cl de gin","Tonic peche et sureau","2 tranches de Citron jaune","une branche de romarin","2 tranches de peche","baie de genievre","2cl de crème de peche"],"steps":["Mettre les glaçons Dans le verre et le citron et une tranche de peche","Verser le gin et le tonic et la crème de peche","mélanger rapidement","Décorer d'une tranche de peche et d'une branche de romarin","Ecraser qq baies de genievre et les poser dessus"],"category":"cocktail"},{"id":2,"name":"Kim Long","ingredients":["1,5cl de sirop de rose","2cl de soho","15cl de jus de litchi","15cl de prosecco","3 petale de rose","1 branche de bamboo"],"steps":["Mettre les glaçons","Mettre l' alcool et le sirop","Verser le jus et le prosecco","planter la feuille de bamboo et poser sur la feuille des pétales"],"category":"cocktail"},{"id":3,"name":"Mise au vert","ingredients":["8cl de cordial concombre verveine menthe","1cl de citron","10cl de lillet blanc","2cl de st germain","1 tranche de concombre","1 tete de menthe","1 dash de tonic","1cl de sirop de fleur sureau"],"steps":["remplir le verre de glacons","Mettre le cordial, le citron, le lillet et le st germain","toper de badoit et mélanger un peu","Décorer avec la tranche de concombre et la menthe"],"category":"cocktail"},{"id":4,"name":"Shinzo","ingredients":["3cl de purée de fruits rouges","1cl de citron","1cl de yuzu","2cl de sirop de pasteque","1cl de sirop d'agave","1 poignée de pasteque","1cl de mezcal","4cl de tequila","2 feuilles de shizo"],"steps":["piler la pasteque et 1 feuille de shizo dans le shaker","shaker les sirop, les alcools, les citrons et la purée","verser dans un verre remplis de glacons","décorer d'une feuille de shizo"],"category":"cocktail"},{"id":5,"name":"Sticky rice","ingredients":["5cl de Rhum","3cl de purée de mangue","1cl de citron vert","zeste citron vert et poudre piment","1cl de sirop de vanille","1cl de sirop de fleur de sureau","5cl de lait de coco infusé au riz","feuille de riz crispy"],"steps":["Shaker tous les éléments avec glacons","verser dans le verre","Décorer d'un zeste de citron vert","Poser la feuille de riz","zester du citron vert et saupoudrer du piment"],"category":"cocktail"},{"id":6,"name":"Viet Mûle","ingredients":["5cl de vodka","2cl de citron vert","1cl de sucre","Mousse gingembre","1 pincée de basilic","zeste de citron","Badoit rouge","Romarin"],"steps":["Mettre tous les ingrédients sauf la mousse dans un shaker pleins de glaçons et shaker","Shaker","Filtrer et verser dans un verre Caipi pleins de glacons","Remplir de badoit","Toper de mousse","zester du citron vert et mettez des feuilles de romarin"],"category":"cocktail"},{"id":7,"name":"Petit rouge","ingredients":["10cl de granité","3cl de purée de fruits rouge","1cl de sirop de pasteque","4cl de vodka","1 feuille de bamboo déco","2cl de jus de pasteque"],"steps":["Verser la granité dans le verre.","Ajouter les purées, le sirop et la vodka","Mélanger et toper de glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":8,"name":"Petit jaune","ingredients":["10cl de granité","2cl de purée de fruit de la passion","4cl de rhum","1 feuille de bamboo"],"steps":["Verser la granité dans le verre.","Ajouter la purée de passion et le rhum.","Mélanger et toper de glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":9,"name":"Petit vert","ingredients":["10cl de granité","4cl de gin","1,5cl de purée de concombre","3cl de ginger beer","1 feuille de bamboo déco"],"steps":["Verser la granité dans un verre.","Ajouter les liquides","Mélanger et toper à la glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":10,"name":"Petit bleu","ingredients":["10cl de granité","2cl de coco","1cl de curacao","4cl de rhum","2cl de jus d'ananas","1 feuille de bamboo"],"steps":["Verser la granité dans le verre.","Ajouter le coco, le curaçao et le rhum et l'ananas","Mélanger et toper de glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":11,"name":"Petit Force Orange","ingredients":["10cl de granité","4cl de Vodka Eristoff","1,5cl de purée de mangue","2cl de brisure de framboise","Une feuille de bamboo"],"steps":["Verser la granité dans un verre.","Ajouter la purée de mangue, la framboise et la vodka.","Mélanger et toper à la glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":12,"name":"Force rouge","ingredients":["20cl de granité","4cl de purée de fruit rouge","4cl de jus de pasteque","6cl de vodka","2cl de sirop de pasteque","1 feuille de bamboo déco"],"steps":["Verser la granité dans le verre.","Ajouter les purées et sirops et la vodka","Mélanger et toper de glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":13,"name":"Force jaune","ingredients":["20cl de granité","4cl de purée de fruit de la passion","6cl de rhum","1 feuille de bamboo"],"steps":["Verser la granité dans le verre.","Ajouter la purée de passion et le rhum.","Mélanger et toper de glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":14,"name":"Force verte","ingredients":["20cl de granité","6cl de gin","4cl de purée de concombre","4cl de ginger beer","1 feuille de bamboo déco"],"steps":["Verser la granité dans un verre.","Ajouter la purée et le gin, et le ginger beer","Mélanger et toper à la glace pilée.","Décorer de la feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":15,"name":"Force bleue","ingredients":["20cl de granité","4cl de coco","2cl de curacao","6cl de rhum","4cl de jus d'ananas","1 feuille de bamboo"],"steps":["Verser la granité dans le verre.","Ajouter la coco, le curaçao et le rhum.","Mélanger et toper de glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":16,"name":"Force orange","ingredients":["20cl de granité","6cl de Vodka Eristoff","2cl de purée de mangue","3cl de purée de fruits rouges","Une feuille de bamboo"],"steps":["Verser la granité dans un verre.","Ajouter la purée de mangue, la framboise et la vodka.","Mélanger et toper à la glace pilée.","Décorer d'une feuille de bamboo et d'un citron deshydraté"],"category":"force"},{"id":17,"name":"Smoothie mangue coco","ingredients":["150gr de glace pilée","75gr de purée de mangue","75gr de jus d'ananas","150gr de purée de coco","2cl de sucre de canne","1 citron déshydraté"],"steps":["mettre les ingrédients dans le blender","mixer et verser dans le verre","Décorer d'une tranche de citron déshydraté"],"category":"smoothie"},{"id":18,"name":"Smoothie mangue basilic","ingredients":["150gr de glace pilée","100gr de purée de mangue","3cl de lait concentré sucrée","3 feuilles de basilic","100gr de jus de mangue","2cl de sucre de canne"],"steps":["mettre les ingrédients dans le blender","mixer et verser dans le verre","Décorer d'une tranche de citron déshydraté"],"category":"smoothie"},{"id":19,"name":"Smoothie fruits rouge acai","ingredients":["150gr de glace pilée","150gr de purée de fruits rouge","150gr de jus de canneberge","4gr de purée d'acai","4cl de sucre de canne","1 citron déshydraté"],"steps":["mettre les ingrédients dans le blender","mixer et verser dans le verre","Décorer d'une tranche de citron déshydraté"],"category":"smoothie"},{"id":20,"name":"Smoothie melon","ingredients":["150gr de glace pilée","300gr de purée de melon","4 feuilles de menthe","2cl de jus de citron","1 citron déshydraté + tete menthe déco"],"steps":["mettre les ingrédients dans le blender","mixer et verser dans le verre","Décorer d'une tranche de citron déshydraté"],"category":"smoothie"},{"id":21,"name":"Smoothie pastèque","ingredients":["150gr de glace pilée","150gr de purée de fruits rouge","200gr de purée de pastèque","4cl de sirop de pastèque","2cl de sucre de canne","1 citron déshydraté + feuille bambou"],"steps":["mettre les ingrédients dans le blender","mixer et verser dans le verre","Décorer d'une tranche de citron déshydraté"],"category":"smoothie"},{"id":22,"name":"Bubble Vai","ingredients":["1 louche de bille passion","1cl de citron","jus de litchi","1 tranche de citron vert"],"steps":["Mettre la louche de bille dans le verre.","Le remplir de glacons.","Toper au jus de litchi et décorer d'une tranche de citron vert."],"category":"bubble_tea"},{"id":23,"name":"Bubble Mojito","ingredients":["1 louche de bille citron vert","2 dès de citron vert","1 pincée de menthe","limonade","1 tête de menthe"],"steps":["Mettre les citron vert et les piler","Ajouter les billes et la menthe","Remplir de glacons","Toper de limonade","Mélanger rapidement et décorer d'une tête de menthe"],"category":"bubble_tea"},{"id":24,"name":"Bubble Tea Dragon","ingredients":["1 louche de perles fruit du dragon","2cl de purée de passion","18cl de thé Earl Grey froid","2cl de sucre de canne","1 rondelle de citron jaune"],"steps":["Mettre une louche de perles dans le verre.","Remplir de glaçons.","Ajouter la passion et le thé","Mélanger vigoureusement","Décorer d'une rondelle de citron jaune."],"category":"bubble_tea"},{"id":25,"name":"Bubble Mango Milk","ingredients":["1 louche de perles de tapioca","4cl de purée de mangue","1cl de sucre de canne","lait","chantilly","1 tranche de citron déshydraté"],"steps":["Mettre une louche de perles de tapioca dans le verre.","Ajouter le lait shaké avec la mangue et le sucre","Remplir le verre de glaçons et verser le lait à la mangue","Décorer d'un dome de chantilly","Poser le citron"],"category":"bubble_tea"},{"id":26,"name":"Bubble Tarot Coco","ingredients":["1 louche de perles de tapioca","2 cuillère à soupe de poudre de tarot","Lait","Chantilly","4cl de coco"],"steps":["Mettre une louche de perles de tapioca dans le verre.","Ajouter le lait shaké avec la poudre et le coco","Remplir le verre de glaçons et verser le lait au tarot","Décorer d'un dome de chantilly","Saupoudrer de poudre de tarot"],"category":"bubble_tea"},{"id":27,"name":"Ice tea passion","ingredients":["2cl de purée de passion","3cl de purée de mangue","2cl de sirop de fleur de sureau","thé glacé","1 branche de romarin","1 tranche de citron vert déshydraté"],"steps":["Mettre les purées, les sirops dans le verre.","Remplir le verre de glacons.","Verser le thé et mélanger","Décorer d'un dôme de glace pilée et d'une tranche de citron vert déshydraté et d'une branche de romarin"],"category":"the_glace"},{"id":28,"name":"Thé glacé pêche","ingredients":["2cl de citron","2cl de sirop de peche","2cl de purée de peche","1 pincée de menthe","1 tête de menthe","1 tranche de citron vert déshydraté","Thé earl grey froid"],"steps":["Mettre les purées et les sirops dans le verre.","Remplir le verre de glacons.","Verser le thé et mélanger","Décorer d'un dôme de glace pilée et d'une tranche de citron vert et d'une tete de menthe"],"category":"the_glace"},{"id":29,"name":"La vie en rose","ingredients":["2cl de citron","8cl de purée de fruits rouges","2cl de sirop d'orgeat","Top badoit","Espuma gingembre"],"steps":["Shaker tous les éléments ensemble sans la mousse","Remplir le verre de glacons et verser","Toper de badoit puis Mettre la mousse","Décorer de qq feuilles de romarin"],"category":"the_glace"},{"id":30,"name":"Citronnade kalamansi","ingredients":["5cl de sirop de sucre de canne","5cl de kalamansi","Eau 20cl","45cl de glace pilée","fleur d'alysse"],"steps":["Verser le sirop de sucre et le kalamansi dans un blender","ajouter la glace pilée et l'eau","mixer et verser dans le verre doucement","completer avec un peu d'eau au centre si besoin","Décorer d'une fleur d'alysse"],"category":"the_glace"},{"id":31,"name":"You Zou","ingredients":["3cl de sirop de sucre de canne","3cl de Yuzu","Eau","1 rondelle de citron jaune"],"steps":["Verser le sirop de sucre et le yuzu.","Remplir le verre de glaçons.","Toper à l'eau.","Décorer d'un peu de glace pilée et d'une rondelle de citron jaune."],"category":"the_glace"},{"id":32,"name":"Kipik","ingredients":["1cl de citron","1 pincée de menthe","Ginger beer","Limonade","1 tranche de citron vert"],"steps":["Remplir le verre de glaçons.","Ajouter le citron et la menthe.","Ajouter du ginger beer jusqu'au 2/3 du verre.","Toper à la limonade.","Mélanger délicatement et décorer d'un peu de glace pilée et d'une tranche de citron vert."],"category":"the_glace"},{"id":33,"name":"Café latte Hanoi","ingredients":["15cl de café vietnamien froid","2cl de lait concentré sucrée"],"steps":["Mettre le lait concentré sucrée dans le verre.","Remplir le verre de glace pilée.","Ajouter le café."],"category":"cafe"},{"id":34,"name":"Matcha latte","ingredients":["2 cuillère à soupe de matcha","lait"],"steps":["Mettre le matcha dans un bol et une dose de lait","Faire chauffer le lait/matcha","Verser le lait/matcha dans le mug","Faire mousser du lait et le verser un nuage par-dessus","Saupoudrer de matcha"],"category":"cafe"},{"id":35,"name":"Dirty Chai","ingredients":["1 cuillère doseuse de chai latte","lait","1 shot d'expresso"],"steps":["Mettre le chaï dans un bol et une dose de lait","Faire chauffer le lait/chaï","Verser le lait/chaï dans un mug","Faire mousser du lait et le verser pour faire un nuage par-dessus","verser 1 shot d'expresso","Saupoudrer de poudre chai"],"category":"cafe"},{"id":36,"name":"Chai latte","ingredients":["1 cuillère doseuse de chai latte","lait"],"steps":["Mettre le chaï dans un bol et une dose de lait","Faire chauffer le lait/chaï","Verser le lait/chaï dans un mug","Faire mousser du lait et le verser pour faire un nuage par-dessus","Saupoudrer de poudre chai"],"category":"cafe"},{"id":37,"name":"Le Mojito","ingredients":["4 dés de citron vert","2cl de sirop de sucre de canne","1 pincée de feuille de menthe","4cl de rhum","1 dash de Badoit","1 dash d'angostura","1 tête de menthe"],"steps":["Mettre la menthe, le citron vert et le sucre de canne dans le verre.","Piler le tout 2/3 fois pour extraire le jus et les arômes.","Remplir le verre de glace pilée.","Ajouter le rhum, le dash d'angostura et la badoit.","Mélanger pour faire remonter la menthe.","Décorer d'un dôme de glace pilée et d'une tête de menthe."],"category":"cocktail"},{"id":38,"name":"Spritz","ingredients":["6cl d'aperol","2/3 prosecco","1/3 badoit","1 tranche d'orange"],"steps":["Remplir le verre de glaçons.","Mettre tous les ingrédients dans un verre à piscine.","Mélanger rapidement","ajouter l'orange par dessus"],"category":"cocktail"},{"id":39,"name":"Gin tonic","ingredients":["4cl de gin","Tonic","2 tranches de Citron jaune","1cl de jus de citron"],"steps":["Mettre les glaçons Dans le verre et le citron","Verser le gin et le tonic","mélanger rapidement","Décorer d'un citron deshydraté, d'une branche de romarin","Ecraser qq baies de genievre et les poser dessus"],"category":"cocktail"},{"id":40,"name":"Margarita","ingredients":["2cl de citron","2cl de cointreau","1cl de sucre de canne","1 pincée de sel","4cl de tequila"],"steps":["Tout mettre dans le shaker remplis de glacons","shaker énergiquement","verser dans le verre","Toper de glace pilée","Décorer d'une tranche de citron deshydraté"],"category":"cocktail"},{"id":41,"name":"Caipirinhia","ingredients":["8 morceau de citron vert","2cl de sirop de sucre de canne","6cl de cachaca","1 tranche de citron deshydraté"],"steps":["Tout mettre dans le shaker remplis de glacons","shaker énergiquement","verser dans le verre","Toper de glace pilée","Décorer d'une tranche de citron deshydraté"],"category":"cocktail"},{"id":42,"name":"Cam Quat (Chia)","ingredients":["130g de chia coco","40gr de mangue passion","1 tête de menthe","1 zeste de citron vert"],"steps":["Déposer le chia dans un bol","déposer 40gr par dessus de mélange passion mangue","Déposer dessus la tête de menthe","Déposer sur un bol de glacons"],"category":"dessert"},{"id":43,"name":"Café gourmand","ingredients":["1 bol de chia + mangue passion","1 mochi coco","1 mini crème brulée","1 café","1 feuille bamboo"],"steps":["Déposer sur une planche la feuille de bamboo","Y déposer les desserts","Faire bruler la crème brulée","Poser le café","Déposer le café ou thé sur la planche"],"category":"dessert"},{"id":44,"name":"Fortune Cookie Vanille","ingredients":["1 cookie chocolat","1 boule de glace vanille","1 cuillere à soupe de cacahuete","1 tête de menthe"],"steps":["Faite rechauffer le cookie 30sec au micro onde","Ajouter les cacahuetes puis la glace","Poser une tête de menthe"],"category":"dessert"},{"id":45,"name":"Fortune Cookie Coco","ingredients":["1 cookie chocolat","1 boule de glace coco","1 cuillère à soupe de coco rapée","1 tête de menthe"],"steps":["Faite rechauffer le cookie 30sec au micro onde","Ajouter la coco et la glace","Décorer d'une tête de menthe"],"category":"dessert"},{"id":46,"name":"Gato So Cola","ingredients":["1 moêlleux chocolat","1 boule de glace vanille rase","1 plaque choco"],"steps":["Faite rechauffer le moelleux 30sec au micro onde","Ajouter la boule de glace rase par dessus","Ajouter la plaque"],"category":"dessert"},{"id":47,"name":"Crème brulée sésame","ingredients":["1 crème brulée","10gr de sucre fin","1 ptt cuillère à glace de glace coco"],"steps":["Saupoudrer de sucre fin sur toute la surface","Retourner la crème en tapant pour enlever l'excédent","Caraméliser au chalumeau","Ajouter la boule de glace"],"category":"dessert"}];
+
+const CAT_EMOJI = { cocktail:'🍸', force:'❄️', smoothie:'🥤', bubble_tea:'🧋', the_glace:'🍵', cafe:'☕', dessert:'🍮', autre:'🍽️' };
+const CAT_LABEL = { cocktail:'Cocktail', force:'Force', smoothie:'Smoothie', bubble_tea:'Bubble Tea', the_glace:'Thé glacé', cafe:'Café', dessert:'Dessert', autre:'Autre' };
+const CAT_COLOR = { cocktail:'var(--violet)', force:'var(--teal)', smoothie:'var(--green)', bubble_tea:'var(--rose)', the_glace:'var(--blue)', cafe:'var(--amber)', dessert:'var(--gold)' };
+const CAT_BG = { cocktail:'rgba(168,85,247,0.08)', force:'rgba(0,210,200,0.08)', smoothie:'rgba(16,185,129,0.08)', bubble_tea:'rgba(255,107,157,0.08)', the_glace:'rgba(59,130,246,0.08)', cafe:'rgba(255,159,67,0.08)', dessert:'rgba(245,200,66,0.08)' };
+
+// ══════════════════════════════════════════
+// PARTICLES
+// ══════════════════════════════════════════
+function spawnParticles() {
+  const cont = document.getElementById('particles');
+  const colors = ['#f5c842','#ff9f43','#ff6b9d','#00d2c8','#a855f7','#3b82f6'];
+  for(let i=0;i<20;i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random()*4+2;
+    p.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${Math.random()*15+10}s;
+      animation-delay:-${Math.random()*15}s;
+    `;
+    cont.appendChild(p);
+  }
+}
+spawnParticles();
+
+// ══════════════════════════════════════════
+// AUTH — Firebase
+// ══════════════════════════════════════════
+
+// Called by onAuthStateChanged (from module script) to show the app
+window._showApp = function(user) {
+  const loginScreen = document.getElementById('loginScreen');
+  loginScreen.classList.add('hiding');
+  setTimeout(() => {
+    loginScreen.style.display='none';
+    const appEl = document.getElementById('app');
+    appEl.style.display='block';
+    requestAnimationFrame(() => appEl.classList.add('visible'));
+    // Display user info
+    const email = user.email || '';
+    const name = email.split('@')[0];
+    const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+    document.getElementById('userName').textContent = displayName;
+    document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+    document.getElementById('dashName').textContent = displayName;
+    initApp();
+  }, 800);
+};
+
+// Called by onAuthStateChanged when user logs out
+window._showLogin = function() {
+  const loginScreen = document.getElementById('loginScreen');
+  document.getElementById('app').style.display='none';
+  document.getElementById('app').classList.remove('visible');
+  loginScreen.style.display='flex';
+  loginScreen.classList.remove('hiding');
+  loginScreen.style.opacity='0';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  requestAnimationFrame(() => { loginScreen.style.transition='opacity 0.5s'; loginScreen.style.opacity='1'; });
+};
+
+async function tryLogin() {
+  const email = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  const btnText = document.getElementById('loginBtnText');
+  const btnSpinner = document.getElementById('loginBtnSpinner');
+
+  if(!email || !password) {
+    err.textContent = '❌ Veuillez remplir tous les champs';
+    err.style.display='block';
+    return;
+  }
+
+  // Show loading state
+  btn.disabled = true;
+  btnText.style.display = 'none';
+  btnSpinner.style.display = 'inline';
+  err.style.display = 'none';
+
+  try {
+    if (!window._fbSignIn) {
+      throw new Error('Firebase non initialisé — rechargez la page');
+    }
+    await window._fbSignIn(email, password);
+    // onAuthStateChanged will call _showApp automatically
+  } catch(e) {
+    btn.disabled = false;
+    btnText.style.display = 'inline';
+    btnSpinner.style.display = 'none';
+    // Firebase error codes → friendly messages
+    const codes = {
+      'auth/user-not-found': '❌ Aucun compte trouvé avec cet email',
+      'auth/wrong-password': '❌ Mot de passe incorrect',
+      'auth/invalid-email': '❌ Adresse email invalide',
+      'auth/too-many-requests': '⚠️ Trop de tentatives, réessayez plus tard',
+      'auth/invalid-credential': '❌ Email ou mot de passe incorrect',
+    };
+    err.textContent = codes[e.code] || '❌ Erreur : ' + (e.message || 'inconnue');
+    err.style.display='block';
+    const box = document.querySelector('.login-box');
+    box.style.animation='shake 0.4s ease';
+    setTimeout(() => box.style.animation='', 400);
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if(e.key==='Enter') {
+    const ls = document.getElementById('loginScreen');
+    if(ls.style.display !== 'none' && !ls.classList.contains('hiding')) tryLogin();
+  }
+});
+
+async function doLogout() {
+  showToast('Au revoir ! 👋', 'info');
+  const overlay = document.getElementById('logoutOverlay');
+  overlay.classList.add('visible');
+  setTimeout(async () => {
+    try {
+      if(window._fbSignOut) await window._fbSignOut();
+    } catch(e) { console.error(e); }
+    overlay.classList.remove('visible');
+    // _showLogin() called automatically by onAuthStateChanged
+  }, 1500);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function initApp() {
+  document.querySelectorAll('.nav-link').forEach(l => {
+    l.addEventListener('click', e => { e.preventDefault(); navigateTo(l.dataset.page); });
+  });
+  loadDashboard();
+  loadVentes();
+  loadStock();
+  loadEquipe();
+  renderRecipes();
+}
+
+function navigateTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  const lnk = document.querySelector(`[data-page="${page}"]`);
+  if(lnk) lnk.classList.add('active');
+  if(page==='dashboard') loadDashboard();
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+function loadDashboard() {
+  const total = appData.ventes.reduce((s,v) => s+v.quantite*v.prix, 0);
+  document.getElementById('totalVentes').textContent = fmt(total);
+  document.getElementById('nbVentes').textContent = appData.ventes.length;
+  const actifs = appData.equipe.filter(e => e.actif).length;
+  document.getElementById('equipePresente').textContent = `${actifs}/${appData.equipe.length}`;
+  const faible = appData.stock.filter(s => s.quantite <= s.quantiteMin).length;
+  document.getElementById('stockFaible').textContent = faible;
+
+  // Top produits
+  const pv = {};
+  appData.ventes.forEach(v => pv[v.produit] = (pv[v.produit]||0) + v.quantite);
+  const top = Object.entries(pv).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('topProduits').innerHTML = `<div class="top-list">${top.map(([n,q],i)=>`
+    <div class="top-item">
+      <div class="top-rank">${i+1}</div>
+      <div class="top-name">${n}</div>
+      <div class="top-qty">${q} vendus</div>
+    </div>`).join('')}</div>`;
+
+  // Cat badges
+  const cats = [...new Set(RECIPES.map(r=>r.category))];
+  document.getElementById('catBadges').innerHTML = cats.map(c=>`
+    <span class="badge" style="background:${CAT_BG[c]};color:${CAT_COLOR[c]}">${CAT_EMOJI[c]} ${CAT_LABEL[c]}</span>`).join('');
+
+  // Stock alerts
+  const alerts = appData.stock.filter(s=>s.quantite<=s.quantiteMin);
+  document.getElementById('stockAlerts').innerHTML = alerts.length ? alerts.map(s=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <span style="font-weight:500">${s.produit}</span>
+      <span class="badge badge-red">⚠️ ${s.quantite} restants</span>
+    </div>`).join('') : '<p style="color:var(--green)">✅ Tous les stocks sont OK</p>';
+
+  // Equipe résumé
+  document.getElementById('equipeResume').innerHTML = appData.equipe.map(e=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <span>${e.avatar} <strong>${e.nom}</strong> — ${e.poste}</span>
+      <span class="badge ${e.actif?'badge-green':'badge-red'}">${e.actif?'✅ Présent':'❌ Absent'}</span>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// VENTES
+// ══════════════════════════════════════════
+function loadVentes() {
+  document.getElementById('ventesBody').innerHTML = appData.ventes.length ? appData.ventes.map(v=>`
+    <tr>
+      <td style="color:var(--muted)">${fmtDate(v.date)}</td>
+      <td><strong>${v.produit}</strong></td>
+      <td>${v.quantite}</td>
+      <td>${fmt(v.prix)}</td>
+      <td><strong style="color:var(--gold)">${fmt(v.quantite*v.prix)}</strong></td>
+      <td><button class="btn btn-red btn-sm" onclick="deleteVente(${v.id})">🗑 Supprimer</button></td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">💰</div><div class="empty-text">Aucune vente enregistrée</div></div></td></tr>`;
+}
+
+function deleteVente(id) {
+  if(!confirm('Supprimer cette vente ?')) return;
+  appData.ventes = appData.ventes.filter(v=>v.id!==id);
+  loadVentes(); loadDashboard();
+  showToast('Vente supprimée', 'error');
+}
+
+function openAddVente() {
+  const opts = appData.stock.map(s=>`<option value="${s.produit}" data-prix="${s.prix}">${s.produit} (${fmt(s.prix)})</option>`).join('');
+  openModal('💰','Nouvelle Vente',`
+    <div class="form-group">
+      <label class="form-label">Produit</label>
+      <select class="form-ctrl" id="v_produit">${opts}</select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Quantité</label>
+      <input type="number" class="form-ctrl" id="v_qty" value="1" min="1"/>
+    </div>
+    <button class="btn btn-gold" style="width:100%" onclick="saveVente()">✓ Enregistrer la vente</button>
+  `);
+}
+
+function saveVente() {
+  const produit = document.getElementById('v_produit').value;
+  const qty = parseInt(document.getElementById('v_qty').value);
+  if(!qty||qty<1) { showToast('Quantité invalide','error'); return; }
+  const s = appData.stock.find(x=>x.produit===produit);
+  appData.ventes.push({ id:Date.now(), produit, quantite:qty, prix:s.prix, date:new Date() });
+  s.quantite = Math.max(0, s.quantite - qty);
+  closeModal(); loadVentes(); loadStock(); loadDashboard();
+  showToast(`Vente enregistrée : ${qty}x ${produit}`, 'success');
+}
+
+// ══════════════════════════════════════════
+// STOCK
+// ══════════════════════════════════════════
+function loadStock() {
+  document.getElementById('stockBody').innerHTML = appData.stock.map(s=>{
+    const pct = Math.min(100, Math.round(s.quantite / Math.max(s.quantiteMin*2, 1) * 100));
+    const color = s.quantite<=s.quantiteMin ? 'var(--red)' : pct<70 ? 'var(--amber)' : 'var(--green)';
+    return `<tr>
+      <td><strong>${s.produit}</strong></td>
+      <td>
+        <div class="stock-bar-wrap">
+          <span style="min-width:30px">${s.quantite}</span>
+          <div class="stock-bar"><div class="stock-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+        </div>
+      </td>
+      <td style="color:var(--muted)">${s.quantiteMin}</td>
+      <td>${fmt(s.prix)}</td>
+      <td><span class="badge ${s.quantite<=s.quantiteMin?'badge-red':'badge-green'}">${s.quantite<=s.quantiteMin?'⚠️ Faible':'✅ OK'}</span></td>
+      <td style="display:flex;gap:0.5rem;flex-wrap:wrap">
+        <button class="btn btn-green btn-sm" onclick="addStock(${s.id})">+10</button>
+        <button class="btn btn-red btn-sm" onclick="delStock(${s.id})">🗑</button>
+      </td>
+    </tr>`;}).join('');
+}
+
+function addStock(id) {
+  const s = appData.stock.find(x=>x.id===id);
+  if(s) { s.quantite+=10; loadStock(); loadDashboard(); showToast(`+10 ${s.produit} ajoutés`,'success'); }
+}
+
+function delStock(id) {
+  if(!confirm('Supprimer ce produit ?')) return;
+  appData.stock = appData.stock.filter(x=>x.id!==id);
+  loadStock(); loadDashboard(); showToast('Produit supprimé','error');
+}
+
+function openAddProduit() {
+  openModal('📦','Nouveau Produit',`
+    <div class="form-group">
+      <label class="form-label">Nom du produit</label>
+      <input type="text" class="form-ctrl" id="p_nom" placeholder="ex: Rhum Diplomatico"/>
+    </div>
+    <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div>
+        <label class="form-label">Quantité</label>
+        <input type="number" class="form-ctrl" id="p_qty" value="50" min="0"/>
+      </div>
+      <div>
+        <label class="form-label">Seuil minimum</label>
+        <input type="number" class="form-ctrl" id="p_min" value="10" min="1"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prix de vente (€)</label>
+      <input type="number" class="form-ctrl" id="p_prix" value="8" step="0.5" min="0"/>
+    </div>
+    <button class="btn btn-gold" style="width:100%" onclick="saveProduit()">✓ Ajouter le produit</button>
+  `);
+}
+
+function saveProduit() {
+  const nom = document.getElementById('p_nom').value.trim();
+  const qty = parseInt(document.getElementById('p_qty').value);
+  const min = parseInt(document.getElementById('p_min').value);
+  const prix = parseFloat(document.getElementById('p_prix').value);
+  if(!nom) { showToast('Nom requis','error'); return; }
+  appData.stock.push({ id:Date.now(), produit:nom, quantite:qty, quantiteMin:min, prix });
+  closeModal(); loadStock(); loadDashboard();
+  showToast(`${nom} ajouté au stock`,'success');
+}
+
+// ══════════════════════════════════════════
+// EQUIPE
+// ══════════════════════════════════════════
+function loadEquipe() {
+  document.getElementById('equipeGrid').innerHTML = appData.equipe.map(e=>`
+    <div class="member-card" style="border-color:${e.actif?'rgba(16,185,129,0.2)':'var(--border)'}">
+      <div class="member-avatar" style="background:${e.actif?'rgba(16,185,129,0.15)':'rgba(255,255,255,0.05)'}">${e.avatar}</div>
+      <div class="member-name">${e.nom}</div>
+      <div class="member-role">${e.poste}</div>
+      <div class="member-hours">🕐 ${e.horaire}</div>
+      <span class="badge ${e.actif?'badge-green':'badge-red'}" style="margin-bottom:1rem">${e.actif?'✅ Présent':'❌ Absent'}</span>
+      <br>
+      <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="togglePresence(${e.id})">${e.actif?'Marquer absent':'Marquer présent'}</button>
+        <button class="btn btn-red btn-sm" onclick="delMembre(${e.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function togglePresence(id) {
+  const m = appData.equipe.find(e=>e.id===id);
+  if(m) { m.actif=!m.actif; loadEquipe(); loadDashboard(); showToast(`${m.nom} : ${m.actif?'présent ✅':'absent ❌'}`,'info'); }
+}
+
+function delMembre(id) {
+  if(!confirm('Supprimer ce membre ?')) return;
+  appData.equipe = appData.equipe.filter(e=>e.id!==id);
+  loadEquipe(); loadDashboard(); showToast('Membre supprimé','error');
+}
+
+function openAddMembre() {
+  openModal('👥','Nouveau Membre',`
+    <div class="form-group">
+      <label class="form-label">Nom complet</label>
+      <input type="text" class="form-ctrl" id="m_nom" placeholder="ex: Alice Dupuis"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Poste</label>
+      <select class="form-ctrl" id="m_poste">
+        <option>Barman</option><option>Serveuse</option><option>Serveur</option>
+        <option>Manager</option><option>Chef de bar</option><option>Plongeur</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Horaires</label>
+      <input type="text" class="form-ctrl" id="m_horaire" placeholder="ex: 18h-02h"/>
+    </div>
+    <button class="btn btn-gold" style="width:100%" onclick="saveMembre()">✓ Ajouter le membre</button>
+  `);
+}
+
+function saveMembre() {
+  const nom = document.getElementById('m_nom').value.trim();
+  const poste = document.getElementById('m_poste').value;
+  const horaire = document.getElementById('m_horaire').value.trim() || 'À définir';
+  if(!nom) { showToast('Nom requis','error'); return; }
+  const avatars = ['👨‍🍳','👩‍🍳','👨‍💼','👩‍💼','🧑‍🍳','🧑‍💼'];
+  appData.equipe.push({ id:Date.now(), nom, poste, actif:true, horaire, avatar:avatars[Math.floor(Math.random()*avatars.length)] });
+  closeModal(); loadEquipe(); loadDashboard();
+  showToast(`${nom} ajouté à l'équipe`,'success');
+}
+
+// ══════════════════════════════════════════
+// RECIPES
+// ══════════════════════════════════════════
+function renderRecipes() {
+  const q = (document.getElementById('recetteSearch')?.value||'').toLowerCase().trim();
+  const list = RECIPES.filter(r=>{
+    const matchCat = activeCat==='all' || r.category===activeCat;
+    const matchQ = !q || r.name.toLowerCase().includes(q) || r.ingredients.some(i=>i.toLowerCase().includes(q));
+    return matchCat && matchQ;
+  });
+  const grid = document.getElementById('recipesGrid');
+  if(!list.length) { grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-text">Aucune recette trouvée</div></div>`; return; }
+  grid.innerHTML = list.map((r,i)=>`
+    <div class="recipe-card" onclick="openRecipe(${r.id})" style="animation-delay:${i*0.03}s">
+      <div class="recipe-thumb" style="background:${CAT_BG[r.category]||'rgba(255,255,255,0.04)'}">
+        <span>${CAT_EMOJI[r.category]||'🍽️'}</span>
+      </div>
+      <div class="recipe-body">
+        <div class="recipe-name">${r.name}</div>
+        <div class="recipe-meta">
+          <span class="badge" style="background:${CAT_BG[r.category]};color:${CAT_COLOR[r.category]}">${CAT_LABEL[r.category]||r.category}</span>
+          <span class="recipe-count">${r.ingredients.length} ingrédients</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function setCat(btn, cat) {
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeCat = cat;
+  renderRecipes();
+}
+
+function filterRecettes() { renderRecipes(); }
+
+function openRecipe(id) {
+  const r = RECIPES.find(x=>x.id===id);
+  if(!r) return;
+  openModal(CAT_EMOJI[r.category]||'🍽️', r.name, `
+    <p class="section-title">Ingrédients (${r.ingredients.length})</p>
+    <div class="ingredient-list">
+      ${r.ingredients.map(i=>`<div class="ingredient-item"><div class="ing-dot"></div>${i}</div>`).join('')}
+    </div>
+    <p class="section-title">Préparation (${r.steps.length} étapes)</p>
+    <div class="steps-list">
+      ${r.steps.map((s,i)=>`<div class="step-item"><div class="step-num">${i+1}</div><div>${s}</div></div>`).join('')}
+    </div>
+    <div style="margin-top:1.5rem;padding:1rem;background:rgba(245,200,66,0.06);border-radius:10px;border:1px solid rgba(245,200,66,0.15)">
+      <span style="color:var(--gold);font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Catégorie</span><br>
+      <span class="badge" style="margin-top:0.4rem;background:${CAT_BG[r.category]};color:${CAT_COLOR[r.category]}">${CAT_EMOJI[r.category]} ${CAT_LABEL[r.category]}</span>
+    </div>
+  `);
+}
+
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+function openModal(emoji, title, body) {
+  document.getElementById('modalEmoji').textContent = emoji;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  document.getElementById('modal').classList.add('active');
+}
+function closeModal() { document.getElementById('modal').classList.remove('active'); }
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+function showToast(msg, type='success') {
+  const icon = { success:'✅', error:'❌', info:'ℹ️' };
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<span>${icon[type]||'✅'}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => { t.classList.add('leaving'); setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function fmt(v) { return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(v); }
+function fmtDate(d) { return new Date(d).toLocaleDateString('fr-FR'); }
+
+// CSS keyframe for shake
+const style = document.createElement('style');
+style.textContent = '@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-8px)} 80%{transform:translateX(8px)} }';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
