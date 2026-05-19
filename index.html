@@ -78,8 +78,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--night);color:var(--text);
 .login-box{background:rgba(17,17,34,0.97);border:1px solid rgba(0,210,200,0.25);border-radius:24px;
   padding:3rem 3.5rem;width:90%;max-width:420px;
   box-shadow:0 40px 80px rgba(0,0,0,0.7),0 0 60px rgba(0,210,200,0.08),inset 0 1px 0 rgba(255,255,255,0.05);
-  animation:loginAppear 0.8s cubic-bezier(0.34,1.56,0.64,1) both;text-align:center;}
-@keyframes loginAppear{from{opacity:0;transform:translateY(40px) scale(0.95);}to{opacity:1;transform:none;}}
+  animation:loginAppear 0.8s cubic-bezier(0.34,1.56,0.64,1) both;text-align:center;opacity:1;}
+@keyframes loginAppear{from{transform:translateY(40px) scale(0.95);}to{transform:none;}}
 .login-logo{font-size:3.5rem;display:block;margin-bottom:0.5rem;
   background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   font-family:'Playfair Display',serif;font-weight:900;animation:glowPulse 3s ease infinite;}
