@@ -143,8 +143,13 @@ const RECIPES = [{"id":1,"name":"Gin tonic pêche","ingredients":["4cl de gin","
 // ── FIREBASE WAIT ────────────────────────────────────────────────
 // Firebase module is async — poll until ready before any Firestore call
 function waitForFirebase() {
-  return new Promise(resolve => {
-    const check = () => (window._fbDb && window._fb) ? resolve() : setTimeout(check, 50);
+  return new Promise((resolve, reject) => {
+    let n = 0;
+    const check = () => {
+      if (window._fbDb && window._fb) return resolve();
+      if (++n > 100) return reject(new Error('Firebase timeout — vérifiez la connexion internet'));
+      setTimeout(check, 50);
+    };
     check();
   });
 }
@@ -157,10 +162,12 @@ function who() { return me() ? me().email : 'inconnu'; }
 // ── AUTH ─────────────────────────────────────────────────────────
 window._showApp = function(user) {
   const ls = document.getElementById('loginScreen');
+  if (!ls) return;
   ls.classList.add('hiding');
   setTimeout(() => {
     ls.style.display = 'none';
     const appEl = document.getElementById('app');
+    if (!appEl) return;
     appEl.style.display = 'block';
     requestAnimationFrame(() => appEl.classList.add('visible'));
     const name = (user.email || '').split('@')[0];
@@ -176,14 +183,15 @@ window._showApp = function(user) {
 window._showLogin = function() {
   [_unsubStock, _unsubNotif, _unsubActivity, _unsubVentes].forEach(fn => fn && fn());
   const ls = document.getElementById('loginScreen');
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('app').classList.remove('visible');
+  if (!ls) return;
+  const appEl = document.getElementById('app');
+  if (appEl) { appEl.style.display = 'none'; appEl.classList.remove('visible'); }
   ls.style.display = 'flex';
   ls.classList.remove('hiding');
-  ls.style.opacity = '0';
+  ls.style.opacity = '1';
+  ls.style.transition = '';
   const luEl = document.getElementById('loginUser'); if (luEl) luEl.value = '';
   const lpEl = document.getElementById('loginPass'); if (lpEl) lpEl.value = '';
-  requestAnimationFrame(() => { ls.style.transition = 'opacity 0.5s'; ls.style.opacity = '1'; });
 };
 
 async function tryLogin() {
