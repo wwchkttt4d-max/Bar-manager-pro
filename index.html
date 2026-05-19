@@ -40,9 +40,14 @@
   onAuthStateChanged(auth, user => {
     window._currentFirebaseUser = user || null;
     if (user) {
-      if (document.getElementById('app').style.display !== 'block') _showApp(user);
+      const appEl = document.getElementById('app');
+      if (appEl && appEl.style.display !== 'block' && window._showApp) window._showApp(user);
     } else {
-      _showLogin();
+      if (window._showLogin) window._showLogin();
+      else {
+        const ls = document.getElementById('loginScreen');
+        if (ls) ls.style.display = 'flex';
+      }
     }
   });
 </script>
