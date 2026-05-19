@@ -39,86 +39,86 @@ const cache = {
 // ── SEED DATA ───────────────────────────────────────────────────
 const SEED_STOCK = [
   // ── SPIRITUEUX · Fournisseur C10 ──────────────────────────────
-  { nom:'Angostura Bitter',         categorie:'spiritueux', quantite:1,  quantiteMin:2,  prix:14,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Armagnac',                 categorie:'spiritueux', quantite:1,  quantiteMin:1,  prix:38,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Bacardi Carta Oro 70cl',   categorie:'spiritueux', quantite:16, quantiteMin:5,  prix:16,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Bombay Sapphire 70cl',     categorie:'spiritueux', quantite:1,  quantiteMin:3,  prix:22,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Cachaça LEBLONC 75cl',     categorie:'spiritueux', quantite:2,  quantiteMin:2,  prix:19,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Calvados Coquerel Fine',   categorie:'spiritueux', quantite:12, quantiteMin:3,  prix:22,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Cognac Camus VS',          categorie:'spiritueux', quantite:2,  quantiteMin:1,  prix:30,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Cointreau 75cl',           categorie:'spiritueux', quantite:3,  quantiteMin:2,  prix:26,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Crème de Cassis 100cl',    categorie:'spiritueux', quantite:4,  quantiteMin:2,  prix:12,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Crème de Pêche',           categorie:'spiritueux', quantite:9,  quantiteMin:2,  prix:12,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Curaçao 70cl',             categorie:'spiritueux', quantite:16, quantiteMin:4,  prix:14,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Diplomatico 70cl',         categorie:'spiritueux', quantite:0,  quantiteMin:2,  prix:30,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Don Papa 70cl',            categorie:'spiritueux', quantite:0,  quantiteMin:2,  prix:33,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Get 27 70cl',              categorie:'spiritueux', quantite:1,  quantiteMin:1,  prix:14,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Gin Bombay Original 70cl', categorie:'spiritueux', quantite:2,  quantiteMin:4,  prix:18,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Jack Daniel\'s 70cl',      categorie:'spiritueux', quantite:0,  quantiteMin:2,  prix:24,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Lillet Blanc 70cl',        categorie:'spiritueux', quantite:2,  quantiteMin:2,  prix:16,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Martini Bianco 100cl',     categorie:'spiritueux', quantite:11, quantiteMin:3,  prix:10,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Martini Rosso 100cl',      categorie:'spiritueux', quantite:11, quantiteMin:3,  prix:10,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Mezcal 70cl',              categorie:'spiritueux', quantite:4,  quantiteMin:2,  prix:36,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Nikka From the Barrel',    categorie:'spiritueux', quantite:2,  quantiteMin:1,  prix:48,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Otard VSOP 70cl',          categorie:'spiritueux', quantite:2,  quantiteMin:1,  prix:26,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Pastis 51 100cl',          categorie:'spiritueux', quantite:2,  quantiteMin:2,  prix:16,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Rhum HSE',                 categorie:'spiritueux', quantite:0,  quantiteMin:2,  prix:24,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Soho 70cl',                categorie:'spiritueux', quantite:1,  quantiteMin:2,  prix:16,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'St Germain 70cl',          categorie:'spiritueux', quantite:3,  quantiteMin:2,  prix:20,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sucre de Canne Paquita',   categorie:'spiritueux', quantite:7,  quantiteMin:4,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Tequila Camino Real 70cl', categorie:'spiritueux', quantite:2,  quantiteMin:2,  prix:18,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Tequila Silver Patron',    categorie:'spiritueux', quantite:1,  quantiteMin:2,  prix:38,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Vodka Eristoff 100cl',     categorie:'spiritueux', quantite:6,  quantiteMin:4,  prix:16,  unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Vodka Grey Goose 70cl',    categorie:'spiritueux', quantite:12, quantiteMin:4,  prix:34,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Angostura Bitter',         categorie:'spiritueux', quantite:0, quantiteMin:2, prix:14, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Armagnac',                 categorie:'spiritueux', quantite:0, quantiteMin:1, prix:38, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Bacardi Carta Oro 70cl',   categorie:'spiritueux', quantite:0, quantiteMin:5, prix:16, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Bombay Sapphire 70cl',     categorie:'spiritueux', quantite:0, quantiteMin:3, prix:22, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Cachaça LEBLONC 75cl',     categorie:'spiritueux', quantite:0, quantiteMin:2, prix:19, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Calvados Coquerel Fine',   categorie:'spiritueux', quantite:0, quantiteMin:3, prix:22, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Cognac Camus VS',          categorie:'spiritueux', quantite:0, quantiteMin:1, prix:30, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Cointreau 75cl',           categorie:'spiritueux', quantite:0, quantiteMin:2, prix:26, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Crème de Cassis 100cl',    categorie:'spiritueux', quantite:0, quantiteMin:2, prix:12, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Crème de Pêche',           categorie:'spiritueux', quantite:0, quantiteMin:2, prix:12, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Curaçao 70cl',             categorie:'spiritueux', quantite:0, quantiteMin:4, prix:14, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Diplomatico 70cl',         categorie:'spiritueux', quantite:0, quantiteMin:2, prix:30, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Don Papa 70cl',            categorie:'spiritueux', quantite:0, quantiteMin:2, prix:33, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Get 27 70cl',              categorie:'spiritueux', quantite:0, quantiteMin:1, prix:14, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Gin Bombay Original 70cl', categorie:'spiritueux', quantite:0, quantiteMin:4, prix:18, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Jack Daniel\'s 70cl',      categorie:'spiritueux', quantite:0, quantiteMin:2, prix:24, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Lillet Blanc 70cl',        categorie:'spiritueux', quantite:0, quantiteMin:2, prix:16, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Martini Bianco 100cl',     categorie:'spiritueux', quantite:0, quantiteMin:3, prix:10, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Martini Rosso 100cl',      categorie:'spiritueux', quantite:0, quantiteMin:3, prix:10, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Mezcal 70cl',              categorie:'spiritueux', quantite:0, quantiteMin:2, prix:36, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Nikka From the Barrel',    categorie:'spiritueux', quantite:0, quantiteMin:1, prix:48, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Otard VSOP 70cl',          categorie:'spiritueux', quantite:0, quantiteMin:1, prix:26, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Pastis 51 100cl',          categorie:'spiritueux', quantite:0, quantiteMin:2, prix:16, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Rhum HSE',                 categorie:'spiritueux', quantite:0, quantiteMin:2, prix:24, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Soho 70cl',                categorie:'spiritueux', quantite:0, quantiteMin:2, prix:16, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'St Germain 70cl',          categorie:'spiritueux', quantite:0, quantiteMin:2, prix:20, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sucre de Canne Paquita',   categorie:'spiritueux', quantite:0, quantiteMin:4, prix:7,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Tequila Camino Real 70cl', categorie:'spiritueux', quantite:0, quantiteMin:2, prix:18, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Tequila Silver Patron',    categorie:'spiritueux', quantite:0, quantiteMin:2, prix:38, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Vodka Eristoff 100cl',     categorie:'spiritueux', quantite:0, quantiteMin:4, prix:16, unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Vodka Grey Goose 70cl',    categorie:'spiritueux', quantite:0, quantiteMin:4, prix:34, unite:'bouteilles', fournisseur:'C10' },
 
   // ── BIÈRES · Fournisseur C10 ──────────────────────────────────
-  { nom:'Fût Bière de Luxe Hanoi',  categorie:'bieres',     quantite:0,  quantiteMin:1,  prix:130, unite:'fûts',       fournisseur:'C10' },
-  { nom:'Fût de Gallia',            categorie:'bieres',     quantite:2,  quantiteMin:1,  prix:140, unite:'fûts',       fournisseur:'C10' },
-  { nom:'Fût de Lagunitas',         categorie:'bieres',     quantite:4,  quantiteMin:1,  prix:150, unite:'fûts',       fournisseur:'C10' },
+  { nom:'Fût Bière de Luxe Hanoi',  categorie:'bieres',     quantite:0, quantiteMin:1, prix:130, unite:'fûts',       fournisseur:'C10' },
+  { nom:'Fût de Gallia',            categorie:'bieres',     quantite:0, quantiteMin:1, prix:140, unite:'fûts',       fournisseur:'C10' },
+  { nom:'Fût de Lagunitas',         categorie:'bieres',     quantite:0, quantiteMin:1, prix:150, unite:'fûts',       fournisseur:'C10' },
 
   // ── BIÈRES · Fournisseur Foodex ───────────────────────────────
-  { nom:'HAO Beer Sake',            categorie:'bieres',     quantite:0,  quantiteMin:2,  prix:4,   unite:'bouteilles', fournisseur:'Foodex' },
-  { nom:'HAO Beer IPA',             categorie:'bieres',     quantite:0,  quantiteMin:2,  prix:4,   unite:'bouteilles', fournisseur:'Foodex' },
+  { nom:'HAO Beer Sake',            categorie:'bieres',     quantite:0, quantiteMin:2, prix:4,  unite:'bouteilles', fournisseur:'Foodex' },
+  { nom:'HAO Beer IPA',             categorie:'bieres',     quantite:0, quantiteMin:2, prix:4,  unite:'bouteilles', fournisseur:'Foodex' },
 
   // ── VINS · Fournisseur C10 ────────────────────────────────────
-  { nom:'Prosecco Martini 75cl',    categorie:'vins',       quantite:6,  quantiteMin:3,  prix:8,   unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Prosecco Martini 75cl',    categorie:'vins',       quantite:0, quantiteMin:3, prix:8,  unite:'bouteilles', fournisseur:'C10' },
 
   // ── SOFTS · Fournisseur C10 ───────────────────────────────────
-  { nom:'Caraibos Ananas 100cl',    categorie:'softs',      quantite:2,  quantiteMin:1,  prix:18,  unite:'caisses×6',  fournisseur:'C10' },
-  { nom:'Caraibos Cranberry 100cl', categorie:'softs',      quantite:2,  quantiteMin:1,  prix:18,  unite:'caisses×6',  fournisseur:'C10' },
-  { nom:'Caraibos Pomme 100cl',     categorie:'softs',      quantite:2,  quantiteMin:1,  prix:18,  unite:'caisses×6',  fournisseur:'C10' },
-  { nom:'Coca-Cola 33cl btl',       categorie:'softs',      quantite:6,  quantiteMin:3,  prix:16,  unite:'caisses×24', fournisseur:'C10' },
-  { nom:'Coca-Cola Zero 33cl btl',  categorie:'softs',      quantite:5,  quantiteMin:2,  prix:16,  unite:'caisses×24', fournisseur:'C10' },
-  { nom:'Coca PET 1,5L',            categorie:'softs',      quantite:1,  quantiteMin:1,  prix:10,  unite:'caisses×6',  fournisseur:'C10' },
-  { nom:'Limonade PET 100cl',       categorie:'softs',      quantite:4,  quantiteMin:2,  prix:12,  unite:'caisses×6',  fournisseur:'C10' },
-  { nom:'Perrier Plastique 100cl',  categorie:'softs',      quantite:2,  quantiteMin:2,  prix:14,  unite:'packs×12',   fournisseur:'C10' },
-  { nom:'San Pellegrino 100CL',     categorie:'softs',      quantite:6,  quantiteMin:2,  prix:22,  unite:'colis',      fournisseur:'C10' },
-  { nom:'San Pellegrino 50CL',      categorie:'softs',      quantite:6,  quantiteMin:2,  prix:18,  unite:'colis',      fournisseur:'C10' },
-  { nom:'Schweppes Ginger Beer',    categorie:'softs',      quantite:3,  quantiteMin:2,  prix:16,  unite:'colis',      fournisseur:'C10' },
-  { nom:'Schweppes Tonic Pêche Sureau', categorie:'softs',  quantite:3,  quantiteMin:2,  prix:16,  unite:'colis',      fournisseur:'C10' },
-  { nom:'Schweppes Tonic Petite',   categorie:'softs',      quantite:0,  quantiteMin:3,  prix:16,  unite:'caisses×24', fournisseur:'C10' },
-  { nom:'Vittel 100CL',             categorie:'softs',      quantite:6,  quantiteMin:3,  prix:14,  unite:'colis',      fournisseur:'C10' },
-  { nom:'Vittel 50CL',              categorie:'softs',      quantite:4,  quantiteMin:2,  prix:10,  unite:'colis',      fournisseur:'C10' },
-  { nom:'Bouteille CO2',            categorie:'softs',      quantite:1,  quantiteMin:1,  prix:25,  unite:'kg',         fournisseur:'C10' },
+  { nom:'Caraibos Ananas 100cl',    categorie:'softs',      quantite:0, quantiteMin:1, prix:18, unite:'caisses×6',  fournisseur:'C10' },
+  { nom:'Caraibos Cranberry 100cl', categorie:'softs',      quantite:0, quantiteMin:1, prix:18, unite:'caisses×6',  fournisseur:'C10' },
+  { nom:'Caraibos Pomme 100cl',     categorie:'softs',      quantite:0, quantiteMin:1, prix:18, unite:'caisses×6',  fournisseur:'C10' },
+  { nom:'Coca-Cola 33cl btl',       categorie:'softs',      quantite:0, quantiteMin:3, prix:16, unite:'caisses×24', fournisseur:'C10' },
+  { nom:'Coca-Cola Zero 33cl btl',  categorie:'softs',      quantite:0, quantiteMin:2, prix:16, unite:'caisses×24', fournisseur:'C10' },
+  { nom:'Coca PET 1,5L',            categorie:'softs',      quantite:0, quantiteMin:1, prix:10, unite:'caisses×6',  fournisseur:'C10' },
+  { nom:'Limonade PET 100cl',       categorie:'softs',      quantite:0, quantiteMin:2, prix:12, unite:'caisses×6',  fournisseur:'C10' },
+  { nom:'Perrier Plastique 100cl',  categorie:'softs',      quantite:0, quantiteMin:2, prix:14, unite:'packs×12',   fournisseur:'C10' },
+  { nom:'San Pellegrino 100CL',     categorie:'softs',      quantite:0, quantiteMin:2, prix:22, unite:'colis',      fournisseur:'C10' },
+  { nom:'San Pellegrino 50CL',      categorie:'softs',      quantite:0, quantiteMin:2, prix:18, unite:'colis',      fournisseur:'C10' },
+  { nom:'Schweppes Ginger Beer',    categorie:'softs',      quantite:0, quantiteMin:2, prix:16, unite:'colis',      fournisseur:'C10' },
+  { nom:'Schweppes Tonic Pêche Sureau', categorie:'softs',  quantite:0, quantiteMin:2, prix:16, unite:'colis',      fournisseur:'C10' },
+  { nom:'Schweppes Tonic Petite',   categorie:'softs',      quantite:0, quantiteMin:3, prix:16, unite:'caisses×24', fournisseur:'C10' },
+  { nom:'Vittel 100CL',             categorie:'softs',      quantite:0, quantiteMin:3, prix:14, unite:'colis',      fournisseur:'C10' },
+  { nom:'Vittel 50CL',              categorie:'softs',      quantite:0, quantiteMin:2, prix:10, unite:'colis',      fournisseur:'C10' },
+  { nom:'Bouteille CO2',            categorie:'softs',      quantite:0, quantiteMin:1, prix:25, unite:'kg',         fournisseur:'C10' },
 
   // ── SIROPS · Fournisseur C10 ──────────────────────────────────
-  { nom:'Sirop d\'Agave 70cl',      categorie:'sirops',     quantite:2,  quantiteMin:2,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Citron Monin',    categorie:'sirops',     quantite:1,  quantiteMin:2,  prix:8,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Fraise 100cl',    categorie:'sirops',     quantite:4,  quantiteMin:2,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Gingembre',       categorie:'sirops',     quantite:4,  quantiteMin:2,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Grenadine 100cl', categorie:'sirops',     quantite:1,  quantiteMin:2,  prix:6,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Menthe Verte',    categorie:'sirops',     quantite:6,  quantiteMin:2,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Pastèque 70cl',   categorie:'sirops',     quantite:14, quantiteMin:3,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Pêche Blanche',   categorie:'sirops',     quantite:12, quantiteMin:3,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Rose 70cl',       categorie:'sirops',     quantite:11, quantiteMin:3,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop de Sureau 70cl',     categorie:'sirops',     quantite:3,  quantiteMin:2,  prix:8,   unite:'bouteilles', fournisseur:'C10' },
-  { nom:'Sirop d\'Orgeat 100cl',    categorie:'sirops',     quantite:7,  quantiteMin:2,  prix:7,   unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop d\'Agave 70cl',      categorie:'sirops',     quantite:0, quantiteMin:2, prix:7,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Citron Monin',    categorie:'sirops',     quantite:0, quantiteMin:2, prix:8,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Fraise 100cl',    categorie:'sirops',     quantite:0, quantiteMin:2, prix:7,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Gingembre',       categorie:'sirops',     quantite:0, quantiteMin:2, prix:7,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Grenadine 100cl', categorie:'sirops',     quantite:0, quantiteMin:2, prix:6,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Menthe Verte',    categorie:'sirops',     quantite:0, quantiteMin:2, prix:7,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Pastèque 70cl',   categorie:'sirops',     quantite:0, quantiteMin:3, prix:7,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Pêche Blanche',   categorie:'sirops',     quantite:0, quantiteMin:3, prix:7,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Rose 70cl',       categorie:'sirops',     quantite:0, quantiteMin:3, prix:7,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop de Sureau 70cl',     categorie:'sirops',     quantite:0, quantiteMin:2, prix:8,  unite:'bouteilles', fournisseur:'C10' },
+  { nom:'Sirop d\'Orgeat 100cl',    categorie:'sirops',     quantite:0, quantiteMin:2, prix:7,  unite:'bouteilles', fournisseur:'C10' },
 
   // ── GARNITURES · Fournisseur Valrhona ─────────────────────────
-  { nom:'Pro Espuma',               categorie:'garnitures', quantite:6,  quantiteMin:3,  prix:18,  unite:'unités',     fournisseur:'Valrhona' },
+  { nom:'Pro Espuma',               categorie:'garnitures', quantite:0, quantiteMin:3, prix:18, unite:'unités',     fournisseur:'Valrhona' },
 
   // ── GARNITURES · Fournisseur Foodex ──────────────────────────
-  { nom:'Yuzu Frais',               categorie:'garnitures', quantite:3,  quantiteMin:2,  prix:20,  unite:'litres',     fournisseur:'Foodex' }
+  { nom:'Yuzu Frais',               categorie:'garnitures', quantite:0, quantiteMin:2, prix:20, unite:'litres',     fournisseur:'Foodex' }
 ];
 
 // ── RECIPES ─────────────────────────────────────────────────────
@@ -253,6 +253,11 @@ function updateWelcome(name) {
 
 // ── INIT ─────────────────────────────────────────────────────────
 function initApp() {
+  inventoryMode = false;
+  document.getElementById('invBanner')?.classList.remove('show');
+  const invBtn = document.getElementById('invModeBtn');
+  if (invBtn) { invBtn.textContent = '📋 Mode inventaire'; invBtn.classList.remove('btn-gold'); }
+
   // Navigation
   document.querySelectorAll('.nav-link').forEach(link =>
     link.addEventListener('click', e => { e.preventDefault(); navigateTo(link.dataset.page); })
@@ -321,7 +326,7 @@ async function setupFirestoreListeners() {
   const { collection, query, orderBy, onSnapshot, limit } = fb();
   const d = db();
 
-  await seedStockIfEmpty();
+  try { await seedStockIfEmpty(); } catch(e) { console.warn('seed skipped:', e.code||e.message); }
 
   const stockQ = query(collection(d,'gamma_stock'), orderBy('nom'));
   _unsubStock = onSnapshot(stockQ, snap => {
@@ -329,7 +334,19 @@ async function setupFirestoreListeners() {
     renderGammaStock();
     updateDashboard();
     if (document.getElementById('intelligence')?.classList.contains('active')) loadIntelligence();
-  }, err => console.error('stock listener', err));
+  }, err => {
+    console.error('stock listener', err);
+    const grid = document.getElementById('gammaGrid');
+    if (grid) grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-text" style="color:var(--red)">${
+        err.code==='permission-denied'
+          ? '🔒 Règles Firestore expirées — allez dans la console Firebase → Firestore → Règles et publiez : allow read, write: if request.auth != null;'
+          : '❌ Erreur Firebase : ' + esc(err.message)
+      }</div>
+    </div>`;
+    showToast('Erreur Firebase : ' + (err.code||err.message), 'error');
+  });
 
   const notifQ = query(collection(d,'gamma_notifications'), orderBy('createdAt','desc'), limit(60));
   _unsubNotif = onSnapshot(notifQ, snap => {
