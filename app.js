@@ -20,9 +20,10 @@ const CAT_COLOR = { cocktail:'var(--violet)',force:'var(--teal)',smoothie:'var(-
 const CAT_BG    = { cocktail:'rgba(168,85,247,0.08)',force:'rgba(0,210,200,0.08)',smoothie:'rgba(16,185,129,0.08)',bubble_tea:'rgba(255,107,157,0.08)',the_glace:'rgba(59,130,246,0.08)',cafe:'rgba(255,159,67,0.08)',dessert:'rgba(245,200,66,0.08)' };
 
 // ── APP STATE ───────────────────────────────────────────────────
-let gammaActiveCat   = 'all';
+let gammaActiveCat    = 'all';
+let serviceActiveCat  = 'all';
 let activeCatRecettes = 'all';
-let inventoryMode    = false;
+let inventoryMode     = false;
 let consumptionChart = null;
 let _unsubStock = null, _unsubNotif = null, _unsubActivity = null, _unsubVentes = null;
 
@@ -263,9 +264,13 @@ function initApp() {
     link.addEventListener('click', e => { e.preventDefault(); navigateTo(link.dataset.page); })
   );
 
-  // Event delegation — gamma stock grid (replaces all inline onclick)
+  // Event delegation — gamma stock grid
   const grid = document.getElementById('gammaGrid');
   if (grid) grid.addEventListener('click', handleGridClick);
+
+  // Event delegation — service mode grid
+  const svcGrid = document.getElementById('serviceGrid');
+  if (svcGrid) svcGrid.addEventListener('click', handleServiceClick);
 
   // Event delegation — ventes table
   const vtb = document.getElementById('ventesBody');
@@ -283,12 +288,16 @@ function initApp() {
 function navigateTo(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.mnav-btn').forEach(b => b.classList.toggle('active', b.dataset.mobilePage === page));
   const pageEl = document.getElementById(page);
   if (pageEl) pageEl.classList.add('active');
   const link = document.querySelector(`[data-page="${page}"]`);
   if (link) link.classList.add('active');
   if (page === 'intelligence') loadIntelligence();
-  if (page === 'ventes') renderVentes();
+  if (page === 'ventes')       renderVentes();
+  if (page === 'service')      renderServiceMode();
+  if (page === 'commande')     renderCommande();
+  window.scrollTo(0, 0);
 }
 
 // ── EVENT DELEGATION ─────────────────────────────────────────────
@@ -334,6 +343,8 @@ async function setupFirestoreListeners() {
     renderGammaStock();
     updateDashboard();
     if (document.getElementById('intelligence')?.classList.contains('active')) loadIntelligence();
+    if (document.getElementById('service')?.classList.contains('active'))      renderServiceMode();
+    if (document.getElementById('commande')?.classList.contains('active'))     renderCommande();
   }, err => {
     console.error('stock listener', err);
     const grid = document.getElementById('gammaGrid');
@@ -1188,6 +1199,175 @@ function saveMembre() {
   showToast(`${nom} ajouté à l'équipe`, 'success');
 }
 
+// ── SERVICE MODE ─────────────────────────────────────────────────
+function setSvcCat(btn, cat) {
+  document.querySelectorAll('.svc-cat-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  serviceActiveCat = cat;
+  renderServiceMode();
+}
+
+function handleServiceClick(e) {
+  const btn = e.target.closest('[data-action="svc"]');
+  if (!btn) return;
+  const card = btn.closest('.service-card[data-id]');
+  if (!card) return;
+  quickAddStock(card.dataset.id, parseInt(btn.dataset.delta, 10));
+}
+
+function renderServiceMode() {
+  const grid = document.getElementById('serviceGrid');
+  if (!grid) return;
+
+  const q = (document.getElementById('serviceSearch')?.value || '').toLowerCase().trim();
+  let items = [...cache.stock];
+  if (serviceActiveCat !== 'all') items = items.filter(s => s.categorie === serviceActiveCat);
+  if (q) items = items.filter(s => (s.nom||'').toLowerCase().includes(q));
+
+  // Sort: rupture → faible → ok
+  items.sort((a, b) => {
+    const score = s => s.quantite === 0 ? 0 : s.quantite <= s.quantiteMin ? 1 : 2;
+    return score(a) - score(b);
+  });
+
+  const alerts = cache.stock.filter(s => s.quantite <= s.quantiteMin).length;
+  const badge  = document.getElementById('svc-alert-badge');
+  if (badge) {
+    badge.textContent = `⚠️ ${alerts} alerte${alerts > 1 ? 's' : ''}`;
+    badge.style.display = alerts ? 'inline-flex' : 'none';
+  }
+
+  if (!items.length && !cache.stock.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">Chargement du stock…</div></div>`;
+    return;
+  }
+  if (!items.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">Aucun produit trouvé</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = items.map(s => {
+    const isCrit  = s.quantite === 0;
+    const isLow   = !isCrit && (s.quantite||0) <= (s.quantiteMin||0);
+    const color   = isCrit ? 'var(--red)' : isLow ? 'var(--amber)' : 'var(--green)';
+    const border  = isCrit ? 'rgba(239,68,68,0.45)' : isLow ? 'rgba(255,159,67,0.35)' : 'var(--border)';
+    const bgStyle = isCrit ? 'background:rgba(239,68,68,0.06)' : isLow ? 'background:rgba(255,159,67,0.04)' : '';
+    return `
+    <div class="service-card" data-id="${s._id}" style="border-color:${border};${bgStyle}">
+      <div style="flex:1;min-width:0;overflow:hidden">
+        <div style="font-size:0.68rem;color:var(--muted);margin-bottom:0.1rem">
+          ${GAMMA_CATS[s.categorie]?.emoji||'📦'} ${esc(s.fournisseur||'')}
+          ${isCrit ? '<span class="badge badge-red" style="margin-left:0.4rem">Rupture</span>' : isLow ? '<span class="badge badge-amber" style="margin-left:0.4rem">⚠ Faible</span>' : ''}
+        </div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.nom)}</div>
+        <div style="font-size:0.74rem;color:var(--muted)">min : <strong>${s.quantiteMin||0}</strong> ${esc(s.unite||'')}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.7rem;flex-shrink:0">
+        <button class="svc-btn svc-btn-minus" data-action="svc" data-delta="-1">−</button>
+        <div style="min-width:76px;text-align:center">
+          <div style="font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;line-height:1;color:${color}">${s.quantite??0}</div>
+          <div style="font-size:0.66rem;color:var(--muted)">${esc(s.unite||'')}</div>
+        </div>
+        <button class="svc-btn svc-btn-plus" data-action="svc" data-delta="1">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── COMMANDES ─────────────────────────────────────────────────────
+function renderCommande() {
+  const el = document.getElementById('commandeContent');
+  if (!el) return;
+  if (!cache.stock.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-text">Chargement du stock…</div></div>`;
+    return;
+  }
+
+  const today = new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const suppliers = [
+    { id:'C10',      label:'C10',      emoji:'🏭', hint:'franco 150 €' },
+    { id:'Valrhona', label:'Valrhona', emoji:'🍫', hint:'franco 150 €' },
+    { id:'Foodex',   label:'Foodex',   emoji:'🌿', hint:'franco 200 €' }
+  ];
+
+  el.innerHTML = `<p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.5rem">📅 ${today}</p>` +
+  suppliers.map(sup => {
+    const items   = cache.stock.filter(s => s.fournisseur === sup.id);
+    const toOrder = items.filter(s => (s.quantiteMin||0)*2 > (s.quantite||0));
+    const ok      = items.filter(s => !toOrder.includes(s));
+
+    return `
+    <div class="commande-supplier">
+      <div class="commande-sup-header">
+        <div>
+          <span style="font-size:1.2rem">${sup.emoji}</span>
+          <strong style="font-size:1.05rem;margin-left:0.4rem">${sup.label}</strong>
+          <span style="color:var(--muted);font-size:0.78rem;margin-left:0.5rem">${sup.hint}</span>
+          <span class="badge ${toOrder.length ? 'badge-red' : 'badge-green'}" style="margin-left:0.6rem">
+            ${toOrder.length ? `${toOrder.length} à commander` : '✅ OK'}
+          </span>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="copyOrderText('${sup.id}','${esc(sup.label)}')">📋 Copier WhatsApp</button>
+        </div>
+      </div>
+      ${toOrder.length === 0
+        ? `<div style="padding:1rem 1.5rem;color:var(--green);font-size:0.9rem">✅ Tous les stocks ${sup.label} sont suffisants</div>`
+        : toOrder.map(s => {
+            const suggest = Math.max(1, Math.ceil((s.quantiteMin||2)*2 - (s.quantite||0)));
+            return `
+            <div class="commande-row">
+              <div style="flex:1;min-width:0">
+                <strong style="font-size:0.92rem">${esc(s.nom)}</strong>
+                <div style="font-size:0.74rem;color:var(--muted)">
+                  Stock actuel : <span style="color:${s.quantite===0?'var(--red)':'var(--amber)'}"><strong>${s.quantite||0}</strong></span> · Min : ${s.quantiteMin||0} ${esc(s.unite||'')}
+                </div>
+              </div>
+              <input class="commande-qty-input" type="number" min="0" value="${suggest}" id="cmd_${esc(s._id)}"/>
+              <span style="font-size:0.8rem;color:var(--muted);min-width:70px">${esc(s.unite||'')}</span>
+            </div>`;
+          }).join('')
+      }
+      ${ok.length ? `
+        <details style="border-top:1px solid var(--border)">
+          <summary style="padding:0.7rem 1.5rem;cursor:pointer;color:var(--muted);font-size:0.82rem;list-style:none">
+            ▸ ${ok.length} article${ok.length>1?'s':''} avec stock suffisant
+          </summary>
+          ${ok.map(s => `<div class="commande-row" style="opacity:0.5">
+            <div style="flex:1"><span style="font-size:0.88rem">${esc(s.nom)}</span>
+              <div style="font-size:0.72rem;color:var(--green)">✅ ${s.quantite||0} ${esc(s.unite||'')} en stock</div>
+            </div>
+            <input class="commande-qty-input" type="number" min="0" value="0" id="cmd_${esc(s._id)}"/>
+            <span style="font-size:0.8rem;color:var(--muted);min-width:70px">${esc(s.unite||'')}</span>
+          </div>`).join('')}
+        </details>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function copyOrderText(supplierId, supplierLabel) {
+  const items = cache.stock.filter(s => s.fournisseur === supplierId);
+  const lines = items
+    .map(s => ({ s, qty: parseInt(document.getElementById('cmd_'+s._id)?.value||0, 10) }))
+    .filter(x => x.qty > 0)
+    .map(x => `• ${x.s.nom} : ${x.qty} ${x.s.unite||''}`);
+
+  if (!lines.length) { showToast('Aucune quantité saisie pour ' + supplierLabel, 'info'); return; }
+
+  const today = new Date().toLocaleDateString('fr-FR');
+  const text  = `🍹 *Commande ${supplierLabel}*\n📅 ${today}\n\n${lines.join('\n')}\n\n_Envoyé via Gamma Stock_`;
+
+  const write = () => navigator.clipboard.writeText(text)
+    .then(() => showToast(`Commande ${supplierLabel} copiée — collez dans WhatsApp ! 📱`, 'success'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      showToast(`Commande ${supplierLabel} copiée !`, 'success');
+    });
+  write();
+}
+
 // ── RECETTES ─────────────────────────────────────────────────────
 function setCat(btn, cat) {
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -1233,7 +1413,32 @@ function renderRecipes() {
 function openRecipe(id) {
   const r = RECIPES.find(x => x.id === id);
   if (!r) return;
+
+  // Estimate cost — match ingredient text against stock names (best-effort)
+  let costMatches = 0, estCost = 0;
+  r.ingredients.forEach(ing => {
+    const ingLower = ing.toLowerCase();
+    const match = cache.stock.find(s =>
+      ingLower.includes(s.nom.toLowerCase().split(' ')[0].toLowerCase()) ||
+      s.nom.toLowerCase().split(' ').some(w => w.length > 4 && ingLower.includes(w))
+    );
+    if (match && match.prix) {
+      const cl = ingLower.match(/(\d+(?:,\d+)?)\s*cl/);
+      if (cl) { estCost += match.prix / 70 * parseFloat(cl[1].replace(',','.')); costMatches++; }
+      else { estCost += match.prix * 0.08; costMatches++; }
+    }
+  });
+
+  const costBadge = costMatches >= 2
+    ? `<span class="badge badge-gold" style="margin-left:0.5rem">💰 Coût ~${fMoney(estCost)}</span>`
+    : '';
+
   openModal(CAT_EMOJI[r.category]||'🍽️', r.name, `
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+      <span class="badge" style="background:${CAT_BG[r.category]};color:${CAT_COLOR[r.category]}">
+        ${CAT_EMOJI[r.category]} ${CAT_LABEL[r.category]}
+      </span>${costBadge}
+    </div>
     <p class="section-title">Ingrédients (${r.ingredients.length})</p>
     <div class="ingredient-list">
       ${r.ingredients.map(ing => `<div class="ingredient-item"><div class="ing-dot"></div>${esc(ing)}</div>`).join('')}
@@ -1241,11 +1446,6 @@ function openRecipe(id) {
     <p class="section-title">Préparation (${r.steps.length} étapes)</p>
     <div class="steps-list">
       ${r.steps.map((s,i) => `<div class="step-item"><div class="step-num">${i+1}</div><div>${esc(s)}</div></div>`).join('')}
-    </div>
-    <div style="margin-top:1rem">
-      <span class="badge" style="background:${CAT_BG[r.category]};color:${CAT_COLOR[r.category]}">
-        ${CAT_EMOJI[r.category]} ${CAT_LABEL[r.category]}
-      </span>
     </div>
   `);
 }

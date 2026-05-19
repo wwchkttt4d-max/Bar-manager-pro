@@ -422,9 +422,41 @@ body{font-family:'DM Sans',sans-serif;background:var(--night);color:var(--text);
 .loading-dots span:nth-child(3){animation-delay:0.4s;}
 @keyframes dotBounce{0%,80%,100%{transform:scale(0.7);opacity:0.5;}40%{transform:scale(1);opacity:1;}}
 
-@media(max-width:900px){.nav-menu{display:none;}.main-content{padding:1rem;}.stats-grid{grid-template-columns:1fr 1fr;}.gamma-grid{grid-template-columns:1fr 1fr;}}
-@media(max-width:480px){.stats-grid,.gamma-grid,.recipes-grid{grid-template-columns:1fr;}.login-box{padding:2rem;}}
-</style>
+/* ── SERVICE MODE ── */
+.service-grid{display:flex;flex-direction:column;gap:0.6rem;}
+.service-card{display:flex;align-items:center;gap:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;transition:border-color 0.2s;}
+.svc-btn{width:68px;height:68px;border-radius:14px;border:none;cursor:pointer;font-size:2rem;font-weight:900;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.svc-btn:active{transform:scale(0.88);}
+.svc-btn-plus{background:rgba(16,185,129,0.2);color:var(--green);}
+.svc-btn-plus:hover{background:rgba(16,185,129,0.35);}
+.svc-btn-minus{background:rgba(239,68,68,0.15);color:var(--red);}
+.svc-btn-minus:hover{background:rgba(239,68,68,0.3);}
+.svc-cat-bar{display:flex;gap:0.4rem;overflow-x:auto;padding-bottom:0.4rem;scrollbar-width:none;margin-bottom:1rem;}
+.svc-cat-bar::-webkit-scrollbar{display:none;}
+.svc-cat-chip{padding:0.5rem 1.1rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:0.85rem;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all 0.2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.svc-cat-chip.active{background:rgba(0,210,200,0.15);color:var(--teal);border-color:rgba(0,210,200,0.4);}
+
+/* ── COMMANDES PAGE ── */
+.commande-supplier{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem;}
+.commande-sup-header{padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);}
+.commande-row{display:flex;align-items:center;gap:1rem;padding:0.75rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.04);}
+.commande-row:last-child{border-bottom:none;}
+.commande-qty-input{width:72px;padding:0.5rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;touch-action:manipulation;}
+.commande-qty-input:focus{outline:none;border-color:rgba(0,210,200,0.4);}
+
+/* ── MOBILE BOTTOM NAV ── */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(10,10,18,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom,0px));}
+.mobile-nav-inner{display:flex;justify-content:space-around;align-items:center;}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:0.15rem;padding:0.4rem 0.6rem;border-radius:10px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:color 0.2s;}
+.mnav-btn .mnav-icon{font-size:1.5rem;line-height:1;}
+.mnav-btn .mnav-label{font-size:0.58rem;text-transform:uppercase;letter-spacing:0.05em;}
+.mnav-btn.active{color:var(--teal);}
+@media(max-width:800px){
+  .mobile-nav{display:block;}
+  .navbar .nav-menu{display:none;}
+  .main-content{padding-bottom:calc(5rem + env(safe-area-inset-bottom,0px));}
+}
+
 </head>
 <body>
 
@@ -474,7 +506,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--night);color:var(--text);
       </div>
       <div class="nav-menu">
         <a href="#" data-page="dashboard" class="nav-link active">📊 Dashboard</a>
-        <a href="#" data-page="gamma" class="nav-link">📦 Stock Gamma</a>
+        <a href="#" data-page="service" class="nav-link">🍺 Service</a>
+        <a href="#" data-page="gamma" class="nav-link">📦 Stock</a>
+        <a href="#" data-page="commande" class="nav-link">🛒 Commandes</a>
         <a href="#" data-page="intelligence" class="nav-link">🧠 Intelligence</a>
         <a href="#" data-page="ventes" class="nav-link">💰 Ventes</a>
         <a href="#" data-page="equipe" class="nav-link">👥 Équipe</a>
@@ -678,6 +712,48 @@ body{font-family:'DM Sans',sans-serif;background:var(--night);color:var(--text);
       <div class="member-grid" id="equipeGrid"></div>
     </section>
 
+    <!-- SERVICE MODE -->
+    <section id="service" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">🍺 <span>Mode Service</span></h1>
+          <p class="page-sub">Interface rapide · grandes touches · stock en temps réel</p>
+        </div>
+        <span id="svc-alert-badge" class="badge badge-red" style="display:none;font-size:0.9rem;padding:0.5rem 1rem"></span>
+      </div>
+      <div style="position:relative;margin-bottom:1rem;">
+        <span style="position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);font-size:1rem">🔍</span>
+        <input type="text" class="gamma-search" id="serviceSearch" placeholder="Rechercher un produit…"
+          oninput="renderServiceMode()" style="padding-left:2.5rem;height:54px;font-size:1rem;width:100%"/>
+      </div>
+      <div class="svc-cat-bar">
+        <button class="svc-cat-chip active" onclick="setSvcCat(this,'all')">📦 Tout</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'spiritueux')">🥃 Spiritueux</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'bieres')">🍺 Bières</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'vins')">🍷 Vins</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'softs')">🥤 Softs</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'sirops')">🍯 Sirops</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'garnitures')">🍋 Garnitures</button>
+      </div>
+      <div class="service-grid" id="serviceGrid">
+        <div class="empty-state"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+      </div>
+    </section>
+
+    <!-- COMMANDES -->
+    <section id="commande" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">🛒 <span>Commandes</span></h1>
+          <p class="page-sub">Bons de commande par fournisseur · copiez et envoyez en WhatsApp</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="renderCommande()">🔄 Actualiser</button>
+      </div>
+      <div id="commandeContent">
+        <div class="empty-state"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+      </div>
+    </section>
+
     <!-- RECETTES -->
     <section id="recettes" class="page">
       <div class="page-header">
@@ -704,6 +780,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--night);color:var(--text);
 
   </main>
 </div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="mnav-btn active" data-mobile-page="dashboard" onclick="navigateTo('dashboard')">
+      <span class="mnav-icon">📊</span><span class="mnav-label">Dashboard</span>
+    </button>
+    <button class="mnav-btn" data-mobile-page="service" onclick="navigateTo('service')">
+      <span class="mnav-icon">🍺</span><span class="mnav-label">Service</span>
+    </button>
+    <button class="mnav-btn" data-mobile-page="gamma" onclick="navigateTo('gamma')">
+      <span class="mnav-icon">📦</span><span class="mnav-label">Stock</span>
+    </button>
+    <button class="mnav-btn" data-mobile-page="commande" onclick="navigateTo('commande')">
+      <span class="mnav-icon">🛒</span><span class="mnav-label">Commande</span>
+    </button>
+    <button class="mnav-btn" data-mobile-page="recettes" onclick="navigateTo('recettes')">
+      <span class="mnav-icon">🍸</span><span class="mnav-label">Recettes</span>
+    </button>
+  </div>
+</nav>
 
 <!-- NOTIFICATION PANEL OVERLAY -->
 <div class="notif-overlay" id="notifOverlay" onclick="toggleNotifPanel()"></div>
