@@ -1,0 +1,10 @@
+/* Gamma Stock Management — companion stylesheet */
+/* Main styles are embedded in index.html for single-file portability */
+/* This file is reserved for future component-level overrides */
+
+/* ── PRINT STYLES ── */
+@media print {
+  .navbar, .notif-panel, .notif-overlay, .toast-container, .modal { display: none !important; }
+  body { background: white; color: black; }
+  .gamma-card { border: 1px solid #ccc; break-inside: avoid; }
+}

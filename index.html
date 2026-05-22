@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Γ GAMMA — Gestion de Stock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Firebase Auth + Firestore (ES module) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, doc, addDoc, setDoc, getDoc, getDocs,
+    updateDoc, deleteDoc, onSnapshot, query, orderBy, where, serverTimestamp, limit }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const cfg = {
+    apiKey: "AIzaSyDltFzvqTTVzJuIY7m0_FXUGCCdLdltfbY",
+    authDomain: "bar-manager-7f099.firebaseapp.com",
+    projectId: "bar-manager-7f099",
+    storageBucket: "bar-manager-7f099.firebasestorage.app",
+    messagingSenderId: "490116095875",
+    appId: "1:490116095875:web:c59cf07c0764cc7e8f20b6"
+  };
+  const fbApp = initializeApp(cfg);
+  const auth  = getAuth(fbApp);
+  const db    = getFirestore(fbApp);
+
+  window._fbAuth    = auth;
+  window._fbDb      = db;
+  window._fbSignIn  = (e, p) => signInWithEmailAndPassword(auth, e, p);
+  window._fbSignOut = () => signOut(auth);
+  window._fb = { collection, doc, addDoc, setDoc, getDoc, getDocs,
+    updateDoc, deleteDoc, onSnapshot, query, orderBy, where, serverTimestamp, limit };
+
+  onAuthStateChanged(auth, user => {
+    window._currentFirebaseUser = user || null;
+    if (user) {
+      const appEl = document.getElementById('app');
+      if (appEl && appEl.style.display !== 'block' && window._showApp) window._showApp(user);
+    } else {
+      if (window._gammaDemoMode) return;
+      if (window._showLogin) window._showLogin();
+      else {
+        const ls = document.getElementById('loginScreen');
+        if (ls) ls.style.display = 'flex';
+      }
+    }
+  });
+</script>
+
+<style>
+:root {
+  --night:#0a0a12; --deep:#111122; --card:#16162a; --surface:#1e1e35;
+  --border:rgba(255,255,255,0.07);
+  --gold:#f5c842; --amber:#ff9f43; --rose:#ff6b9d;
+  --teal:#00d2c8; --violet:#a855f7; --blue:#3b82f6;
+  --green:#10b981; --red:#ef4444;
+  --text:#e8e8f0; --muted:#7070a0;
+  --radius:14px;
+  --glow:0 0 40px rgba(0,210,200,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--night);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── PARTICLES ── */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.particle{position:absolute;border-radius:50%;animation:float-particle linear infinite;opacity:0;}
+@keyframes float-particle{0%{transform:translateY(100vh) scale(0);opacity:0;}10%{opacity:0.5;}90%{opacity:0.15;}100%{transform:translateY(-100px) scale(1.5);opacity:0;}}
+
+/* ── LOGIN ── */
+#loginScreen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,#0d0a1e 0%,var(--night) 70%);transition:all 0.8s cubic-bezier(0.76,0,0.24,1);
+  opacity:1!important;}
+#loginScreen.hiding{transform:scale(1.05);opacity:0!important;pointer-events:none;}
+.login-box{background:rgba(17,17,34,0.97);border:1px solid rgba(0,210,200,0.25);border-radius:24px;
+  padding:3rem 3.5rem;width:90%;max-width:420px;
+  box-shadow:0 40px 80px rgba(0,0,0,0.7),0 0 60px rgba(0,210,200,0.08),inset 0 1px 0 rgba(255,255,255,0.05);
+  animation:loginAppear 0.8s cubic-bezier(0.34,1.56,0.64,1) both;text-align:center;opacity:1;}
+@keyframes loginAppear{from{transform:translateY(40px) scale(0.95);}to{transform:none;}}
+.login-logo{font-size:3.5rem;display:block;margin-bottom:0.5rem;
+  background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  font-family:'Playfair Display',serif;font-weight:900;animation:glowPulse 3s ease infinite;}
+@keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 8px rgba(0,210,200,0.4));}50%{filter:drop-shadow(0 0 20px rgba(0,210,200,0.7));}}
+.login-title{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;
+  background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.3rem;}
+.login-sub{color:var(--muted);font-size:0.9rem;margin-bottom:2rem;}
+.login-form{display:flex;flex-direction:column;gap:1rem;}
+.login-input-wrap{position:relative;}
+.login-input-wrap span{position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:1rem;}
+.login-input{width:100%;padding:0.9rem 1rem 0.9rem 2.8rem;background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:1rem;font-family:'DM Sans',sans-serif;transition:all 0.3s;}
+.login-input:focus{outline:none;border-color:var(--teal);background:rgba(0,210,200,0.05);box-shadow:0 0 0 3px rgba(0,210,200,0.1);}
+.login-btn{padding:1rem;border:none;border-radius:10px;
+  background:linear-gradient(135deg,var(--teal),var(--violet));
+  color:#fff;font-weight:700;font-size:1rem;cursor:pointer;transition:all 0.3s;letter-spacing:0.05em;text-transform:uppercase;}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,210,200,0.4);}
+.login-hint{color:var(--muted);font-size:0.8rem;margin-top:1rem;}
+.login-error{color:var(--rose);font-size:0.85rem;padding:0.5rem;background:rgba(255,107,157,0.1);border-radius:8px;display:none;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-8px);}40%,80%{transform:translateX(8px);}}
+
+/* ── LOGOUT ── */
+#logoutOverlay{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--night);opacity:0;pointer-events:none;transition:opacity 0.5s;}
+#logoutOverlay.visible{opacity:1;pointer-events:all;}
+.logout-emoji{font-size:4rem;animation:goodbye 1s ease infinite alternate;}
+@keyframes goodbye{from{transform:scale(1) rotate(-5deg);}to{transform:scale(1.2) rotate(5deg);}}
+.logout-text{font-family:'Playfair Display',serif;font-size:1.8rem;
+  background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-top:1rem;}
+
+/* ── APP ── */
+#app{display:none;min-height:100vh;position:relative;z-index:1;}
+#app.visible{display:block;animation:appReveal 0.6s ease both;}
+@keyframes appReveal{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+
+/* ── NAVBAR ── */
+.navbar{position:sticky;top:0;z-index:100;background:rgba(10,10,18,0.96);
+  backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0.75rem 0;}
+.nav-container{max-width:1500px;margin:0 auto;padding:0 2rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;}
+.nav-brand{display:flex;align-items:center;gap:0.6rem;cursor:pointer;flex-shrink:0;}
+.nav-brand-gamma{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:900;
+  background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-brand-sub{font-size:0.7rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-left:0.2rem;align-self:flex-end;margin-bottom:3px;}
+.nav-menu{display:flex;gap:0.2rem;align-items:center;flex-wrap:wrap;}
+.nav-link{display:flex;align-items:center;gap:0.4rem;color:var(--muted);text-decoration:none;
+  padding:0.55rem 0.9rem;border-radius:8px;font-size:0.85rem;font-weight:500;transition:all 0.3s;border:1px solid transparent;white-space:nowrap;}
+.nav-link:hover{color:var(--text);background:rgba(255,255,255,0.05);}
+.nav-link.active{color:var(--teal);border-color:rgba(0,210,200,0.25);background:rgba(0,210,200,0.08);}
+.nav-right{display:flex;align-items:center;gap:0.8rem;flex-shrink:0;}
+.user-badge{display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.8rem;background:rgba(255,255,255,0.05);border-radius:20px;font-size:0.85rem;}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--violet));display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;color:#fff;}
+.logout-btn{padding:0.5rem 1rem;border:1px solid rgba(239,68,68,0.3);background:transparent;color:var(--red);border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:'DM Sans',sans-serif;transition:all 0.3s;}
+.logout-btn:hover{background:rgba(239,68,68,0.1);border-color:var(--red);}
+
+/* ── NOTIFICATION BELL ── */
+.notif-bell-btn{position:relative;cursor:pointer;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);
+  display:flex;align-items:center;justify-content:center;border:1px solid var(--border);transition:all 0.3s;font-size:1.1rem;}
+.notif-bell-btn:hover{background:rgba(0,210,200,0.12);border-color:rgba(0,210,200,0.3);}
+.notif-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;border-radius:9px;
+  background:var(--red);color:#fff;font-size:0.65rem;font-weight:700;display:none;
+  align-items:center;justify-content:center;padding:0 4px;
+  animation:pulseBadge 2s infinite;border:2px solid var(--night);}
+.notif-badge.show{display:flex;}
+@keyframes pulseBadge{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.5);}50%{box-shadow:0 0 0 5px rgba(239,68,68,0);}}
+
+/* ── NOTIFICATION PANEL (slide drawer) ── */
+.notif-panel{position:fixed;top:0;right:-400px;height:100vh;width:380px;
+  background:var(--deep);border-left:1px solid var(--border);z-index:300;
+  transition:right 0.35s cubic-bezier(0.34,1.56,0.64,1);overflow-y:auto;display:flex;flex-direction:column;}
+.notif-panel.open{right:0;box-shadow:-20px 0 60px rgba(0,0,0,0.5);}
+.notif-panel-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;
+  position:sticky;top:0;background:var(--deep);z-index:1;flex-shrink:0;}
+.notif-panel-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;
+  background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.notif-close{background:rgba(255,255,255,0.07);border:none;color:var(--text);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.notif-close:hover{background:rgba(239,68,68,0.2);color:var(--red);}
+.notif-list{flex:1;overflow-y:auto;}
+.notif-item{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.2s;}
+.notif-item:hover{background:rgba(255,255,255,0.03);}
+.notif-item.unread{background:rgba(0,210,200,0.04);border-left:3px solid var(--teal);}
+.notif-item-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.3rem;}
+.notif-item-title{font-weight:600;font-size:0.88rem;}
+.notif-item-time{color:var(--muted);font-size:0.72rem;white-space:nowrap;margin-left:0.5rem;}
+.notif-item-msg{color:var(--muted);font-size:0.82rem;line-height:1.4;}
+.notif-empty{text-align:center;padding:3rem 1rem;color:var(--muted);}
+.notif-actions{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:0.5rem;flex-shrink:0;}
+.notif-overlay{position:fixed;inset:0;z-index:299;background:rgba(0,0,0,0.5);display:none;backdrop-filter:blur(3px);}
+.notif-overlay.active{display:block;}
+
+/* ── MAIN LAYOUT ── */
+.main-content{max-width:1500px;margin:0 auto;padding:2rem;}
+.page{display:none;}
+.page.active{display:block;animation:pageIn 0.4s ease both;}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+.page-header{margin-bottom:2rem;}
+.page-title{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;color:var(--text);}
+.page-title span{background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.page-sub{color:var(--muted);margin-top:0.3rem;}
+.page-header-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem;}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.2rem;margin-bottom:2rem;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.5rem;display:flex;align-items:center;gap:1.2rem;transition:all 0.3s;position:relative;overflow:hidden;
+  animation:slideUp 0.5s ease both;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.s-teal::before{background:linear-gradient(90deg,var(--teal),var(--blue));}
+.stat-card.s-gold::before{background:linear-gradient(90deg,var(--gold),var(--amber));}
+.stat-card.s-violet::before{background:linear-gradient(90deg,var(--violet),var(--rose));}
+.stat-card.s-green::before{background:linear-gradient(90deg,var(--green),var(--teal));}
+.stat-card.s-red::before{background:linear-gradient(90deg,var(--red),var(--rose));}
+.stat-card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,0.12);box-shadow:0 12px 40px rgba(0,0,0,0.4);}
+.stat-icon{font-size:2.2rem;}
+.stat-value{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--text);}
+.stat-label{color:var(--muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.08em;}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+
+/* ── CARDS GRID ── */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1.5rem;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all 0.3s;}
+.card:hover{box-shadow:0 16px 50px rgba(0,0,0,0.4);}
+.card-header{padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:0.6rem;}
+.card-header h2{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--text);display:flex;align-items:center;gap:0.5rem;}
+.card-body{padding:1.5rem;}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table thead{background:rgba(255,255,255,0.03);}
+.data-table th{padding:1rem 1.2rem;text-align:left;font-size:0.73rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);}
+.data-table td{padding:0.9rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.9rem;}
+.data-table tbody tr:last-child td{border-bottom:none;}
+.data-table tbody tr{transition:background 0.2s;}
+.data-table tbody tr:hover{background:rgba(255,255,255,0.03);}
+
+/* ── BUTTONS ── */
+.btn{padding:0.65rem 1.3rem;border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;transition:all 0.25s;display:inline-flex;align-items:center;gap:0.4rem;}
+.btn:hover{transform:translateY(-1px);}
+.btn-teal{background:linear-gradient(135deg,var(--teal),var(--violet));color:#fff;}
+.btn-teal:hover{box-shadow:0 6px 20px rgba(0,210,200,0.35);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--amber));color:#000;}
+.btn-gold:hover{box-shadow:0 6px 20px rgba(245,200,66,0.35);}
+.btn-green{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3);}
+.btn-green:hover{background:rgba(16,185,129,0.25);}
+.btn-red{background:rgba(239,68,68,0.12);color:var(--red);border:1px solid rgba(239,68,68,0.25);}
+.btn-red:hover{background:rgba(239,68,68,0.22);}
+.btn-ghost{background:rgba(255,255,255,0.06);color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);}
+.btn-violet{background:rgba(168,85,247,0.15);color:var(--violet);border:1px solid rgba(168,85,247,0.3);}
+.btn-violet:hover{background:rgba(168,85,247,0.25);}
+.btn-sm{padding:0.4rem 0.8rem;font-size:0.78rem;}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.73rem;font-weight:600;}
+.badge-green{background:rgba(16,185,129,0.15);color:var(--green);}
+.badge-red{background:rgba(239,68,68,0.12);color:var(--red);}
+.badge-gold{background:rgba(245,200,66,0.15);color:var(--gold);}
+.badge-teal{background:rgba(0,210,200,0.12);color:var(--teal);}
+.badge-violet{background:rgba(168,85,247,0.15);color:var(--violet);}
+.badge-amber{background:rgba(255,159,67,0.15);color:var(--amber);}
+.badge-muted{background:rgba(255,255,255,0.06);color:var(--muted);}
+
+/* ── GAMMA STOCK PAGE ── */
+.gamma-top{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;}
+.gamma-search-wrap{position:relative;flex:1;min-width:220px;}
+.gamma-search-wrap::before{content:'🔍';position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);font-size:0.9rem;}
+.gamma-search{width:100%;padding:0.65rem 1rem 0.65rem 2.4rem;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;transition:all 0.3s;}
+.gamma-search:focus{outline:none;border-color:rgba(0,210,200,0.4);box-shadow:0 0 0 3px rgba(0,210,200,0.08);}
+.gamma-cat-filters{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.gamma-cat-chip{padding:0.35rem 0.85rem;border-radius:20px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);cursor:pointer;font-size:0.8rem;font-family:'DM Sans',sans-serif;transition:all 0.25s;}
+.gamma-cat-chip:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
+.gamma-cat-chip.active{background:rgba(0,210,200,0.12);color:var(--teal);border-color:rgba(0,210,200,0.35);}
+
+/* ── PRODUCT CARDS ── */
+.gamma-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem;}
+.gamma-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;transition:all 0.3s;position:relative;}
+.gamma-card:hover{transform:translateY(-3px);border-color:rgba(0,210,200,0.2);box-shadow:0 10px 30px rgba(0,0,0,0.3);}
+.gamma-card.state-critical{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.04);}
+.gamma-card.state-low{border-color:rgba(255,159,67,0.3);background:rgba(255,159,67,0.03);}
+.gamma-card.state-ok{border-color:rgba(16,185,129,0.15);}
+.gamma-card-cat{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.3rem;}
+.gamma-card-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-bottom:0.8rem;line-height:1.3;}
+.gamma-qty-row{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.5rem;}
+.gamma-qty-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;line-height:1;}
+.gamma-qty-unit{color:var(--muted);font-size:0.82rem;}
+.gamma-progress{height:4px;border-radius:2px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:0.7rem;}
+.gamma-progress-bar{height:100%;border-radius:2px;transition:width 0.5s ease;}
+.gamma-card-meta{display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:var(--muted);margin-bottom:0.8rem;}
+.gamma-card-actions{display:flex;gap:0.4rem;flex-wrap:wrap;}
+.qty-btn{width:30px;height:30px;border-radius:7px;border:none;cursor:pointer;font-weight:700;font-size:0.9rem;
+  display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.qty-btn-plus{background:rgba(16,185,129,0.15);color:var(--green);}
+.qty-btn-plus:hover{background:rgba(16,185,129,0.3);}
+.qty-btn-minus{background:rgba(239,68,68,0.12);color:var(--red);}
+.qty-btn-minus:hover{background:rgba(239,68,68,0.25);}
+
+/* ── INVENTORY MODE ── */
+.inv-banner{background:linear-gradient(90deg,rgba(245,200,66,0.1),rgba(255,159,67,0.05));
+  border:1px solid rgba(245,200,66,0.3);border-radius:12px;padding:0.75rem 1.2rem;
+  display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;display:none;}
+.inv-banner.show{display:flex;}
+
+/* ── ACTIVITY FEED ── */
+.activity-item{display:flex;gap:0.8rem;padding:0.75rem 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.activity-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;background:rgba(255,255,255,0.06);}
+.activity-body{flex:1;min-width:0;}
+.activity-text{font-size:0.85rem;line-height:1.4;}
+.activity-text strong{color:var(--teal);}
+.activity-time{color:var(--muted);font-size:0.72rem;margin-top:0.2rem;}
+
+/* ── INTELLIGENCE PAGE ── */
+.intel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;}
+.intel-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;}
+.intel-card-title{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+.score-ring{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;position:relative;}
+.score-value{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;}
+.score-label{font-size:0.8rem;color:var(--muted);text-align:center;margin-top:0.3rem;}
+.reorder-item{display:flex;align-items:center;justify-content:space-between;
+  padding:0.75rem;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:0.5rem;border:1px solid var(--border);}
+.reorder-left{flex:1;min-width:0;}
+.reorder-name{font-weight:600;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.reorder-sub{font-size:0.75rem;color:var(--muted);}
+.days-pill{font-size:0.72rem;padding:0.2rem 0.6rem;border-radius:12px;font-weight:700;white-space:nowrap;margin-left:0.5rem;}
+.days-critical{background:rgba(239,68,68,0.15);color:var(--red);}
+.days-warning{background:rgba(255,159,67,0.15);color:var(--amber);}
+.days-ok{background:rgba(16,185,129,0.12);color:var(--green);}
+.chart-container{position:relative;height:200px;}
+.broadcast-box{background:linear-gradient(135deg,rgba(0,210,200,0.07),rgba(168,85,247,0.04));
+  border:1px solid rgba(0,210,200,0.2);border-radius:var(--radius);padding:1.2rem;}
+
+/* ── TOP PRODUCTS ── */
+.top-list{display:flex;flex-direction:column;gap:0.7rem;}
+.top-item{display:flex;align-items:center;gap:0.8rem;padding:0.6rem 0;border-bottom:1px solid var(--border);}
+.top-rank{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--violet));color:#fff;font-weight:700;font-size:0.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.top-name{flex:1;font-weight:500;}
+.top-qty{color:var(--muted);font-size:0.83rem;}
+
+/* ── STOCK BAR ── */
+.stock-bar-wrap{display:flex;align-items:center;gap:0.6rem;}
+.stock-bar{height:5px;border-radius:3px;background:rgba(255,255,255,0.08);flex:1;overflow:hidden;}
+.stock-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;}
+
+/* ── EQUIPE ── */
+.member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;}
+.member-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center;transition:all 0.3s;}
+.member-card:hover{transform:translateY(-3px);}
+.member-avatar{width:60px;height:60px;border-radius:50%;margin:0 auto 0.75rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+.member-name{font-family:'Playfair Display',serif;font-weight:700;font-size:1rem;margin-bottom:0.2rem;}
+.member-role{color:var(--muted);font-size:0.85rem;margin-bottom:0.5rem;}
+.member-hours{font-size:0.8rem;color:var(--muted);margin-bottom:1rem;}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal.active{opacity:1;pointer-events:all;}
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;
+  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;position:relative;z-index:1;
+  transform:translateY(30px) scale(0.97);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+.modal.active .modal-box{transform:none;}
+.modal-header{padding:1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;
+  position:sticky;top:0;background:var(--card);border-radius:20px 20px 0 0;z-index:1;}
+.modal-close{background:rgba(255,255,255,0.07);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.modal-close:hover{background:rgba(239,68,68,0.2);color:var(--red);transform:rotate(90deg);}
+.modal-body{padding:1.5rem;}
+.modal-emoji{font-size:2rem;margin-bottom:0.3rem;display:block;}
+.modal-title-text{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;}
+
+/* ── FORM ── */
+.form-group{margin-bottom:1.2rem;}
+.form-label{display:block;margin-bottom:0.4rem;font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;}
+.form-ctrl{width:100%;padding:0.75rem 1rem;background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:0.95rem;font-family:'DM Sans',sans-serif;transition:all 0.3s;}
+.form-ctrl:focus{outline:none;border-color:rgba(0,210,200,0.4);background:rgba(0,210,200,0.04);}
+.form-ctrl option{background:var(--deep);color:var(--text);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+
+/* ── RECIPES ── */
+.recipes-controls{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap::before{content:'🔍';position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);font-size:0.9rem;}
+.search-input{width:100%;padding:0.65rem 1rem 0.65rem 2.4rem;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.9rem;transition:all 0.3s;}
+.search-input:focus{outline:none;border-color:rgba(0,210,200,0.4);box-shadow:0 0 0 3px rgba(0,210,200,0.08);}
+.cat-filters{display:flex;gap:0.5rem;flex-wrap:wrap;}
+.cat-btn{padding:0.35rem 0.85rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:0.78rem;font-family:'DM Sans',sans-serif;transition:all 0.25s;}
+.cat-btn:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
+.cat-btn.active{background:rgba(245,200,66,0.12);color:var(--gold);border-color:rgba(245,200,66,0.3);}
+.recipes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1.2rem;}
+.recipe-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all 0.3s;animation:cardIn 0.4s ease both;}
+@keyframes cardIn{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:none;}}
+.recipe-card:hover{transform:translateY(-4px) scale(1.01);border-color:rgba(245,200,66,0.2);box-shadow:0 12px 40px rgba(0,0,0,0.4);}
+.recipe-thumb{height:80px;display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;overflow:hidden;}
+.recipe-thumb::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,var(--card));}
+.recipe-body{padding:1rem;}
+.recipe-name{font-family:'Playfair Display',serif;font-weight:700;font-size:0.95rem;margin-bottom:0.4rem;}
+.recipe-meta{display:flex;justify-content:space-between;align-items:center;}
+.recipe-count{color:var(--muted);font-size:0.78rem;}
+.section-title{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--teal);margin:1.5rem 0 0.75rem;font-weight:700;}
+.ingredient-list{display:flex;flex-direction:column;gap:0.4rem;}
+.ingredient-item{display:flex;align-items:center;gap:0.7rem;padding:0.5rem 0.75rem;background:rgba(255,255,255,0.04);border-radius:8px;font-size:0.88rem;}
+.ing-dot{width:5px;height:5px;border-radius:50%;background:var(--teal);flex-shrink:0;}
+.steps-list{display:flex;flex-direction:column;gap:0.7rem;}
+.step-item{display:flex;gap:0.75rem;padding:0.7rem;background:rgba(255,255,255,0.04);border-radius:8px;font-size:0.88rem;line-height:1.5;}
+.step-num{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--violet));color:#fff;font-weight:700;font-size:0.7rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;}
+.toast{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:0.9rem 1.3rem;
+  min-width:260px;max-width:340px;display:flex;align-items:center;gap:0.8rem;box-shadow:0 8px 30px rgba(0,0,0,0.4);
+  animation:toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
+@keyframes toastIn{from{opacity:0;transform:translateX(100px);}to{opacity:1;transform:none;}}
+.toast.leaving{animation:toastOut 0.3s ease forwards;}
+@keyframes toastOut{to{opacity:0;transform:translateX(100px);}}
+.toast-success{border-left:3px solid var(--green);}
+.toast-error{border-left:3px solid var(--red);}
+.toast-info{border-left:3px solid var(--teal);}
+.toast-warning{border-left:3px solid var(--amber);}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--muted);}
+.empty-icon{font-size:3rem;margin-bottom:1rem;}
+.empty-text{font-size:1rem;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2);}
+
+/* ── DASHBOARD WELCOME ── */
+.welcome-card{background:linear-gradient(135deg,rgba(0,210,200,0.08),rgba(168,85,247,0.04));
+  border:1px solid rgba(0,210,200,0.2);border-radius:var(--radius);padding:1.5rem;margin-bottom:2rem;
+  display:flex;align-items:center;gap:1.5rem;}
+.welcome-text h3{font-family:'Playfair Display',serif;font-size:1.3rem;
+  background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.3rem;}
+.welcome-text p{color:var(--muted);font-size:0.9rem;}
+.welcome-time{font-size:2.5rem;}
+
+/* ── LOADER ── */
+.loading-dots{display:inline-flex;gap:4px;}
+.loading-dots span{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:dotBounce 1.2s infinite;}
+.loading-dots span:nth-child(2){animation-delay:0.2s;}
+.loading-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes dotBounce{0%,80%,100%{transform:scale(0.7);opacity:0.5;}40%{transform:scale(1);opacity:1;}}
+
+/* ── SERVICE MODE ── */
+.service-grid{display:flex;flex-direction:column;gap:0.6rem;}
+.service-card{display:flex;align-items:center;gap:1rem;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;transition:border-color 0.2s;}
+.svc-btn{width:68px;height:68px;border-radius:14px;border:none;cursor:pointer;font-size:2rem;font-weight:900;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.svc-btn:active{transform:scale(0.88);}
+.svc-btn-plus{background:rgba(16,185,129,0.2);color:var(--green);}
+.svc-btn-plus:hover{background:rgba(16,185,129,0.35);}
+.svc-btn-minus{background:rgba(239,68,68,0.15);color:var(--red);}
+.svc-btn-minus:hover{background:rgba(239,68,68,0.3);}
+.svc-cat-bar{display:flex;gap:0.4rem;overflow-x:auto;padding-bottom:0.4rem;scrollbar-width:none;margin-bottom:1rem;}
+.svc-cat-bar::-webkit-scrollbar{display:none;}
+.svc-cat-chip{padding:0.5rem 1.1rem;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:0.85rem;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all 0.2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.svc-cat-chip.active{background:rgba(0,210,200,0.15);color:var(--teal);border-color:rgba(0,210,200,0.4);}
+
+/* ── COMMANDES PAGE ── */
+.commande-supplier{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem;}
+.commande-sup-header{padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border);}
+.commande-row{display:flex;align-items:center;gap:1rem;padding:0.75rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.04);}
+.commande-row:last-child{border-bottom:none;}
+.commande-qty-input{width:72px;padding:0.5rem;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:1rem;text-align:center;touch-action:manipulation;}
+.commande-qty-input:focus{outline:none;border-color:rgba(0,210,200,0.4);}
+
+/* ── MOBILE BOTTOM NAV ── */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(10,10,18,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);padding:0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom,0px));}
+.mobile-nav-inner{display:flex;justify-content:space-around;align-items:center;}
+.mnav-btn{display:flex;flex-direction:column;align-items:center;gap:0.15rem;padding:0.4rem 0.6rem;border-radius:10px;cursor:pointer;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:color 0.2s;}
+.mnav-btn .mnav-icon{font-size:1.5rem;line-height:1;}
+.mnav-btn .mnav-label{font-size:0.58rem;text-transform:uppercase;letter-spacing:0.05em;}
+.mnav-btn.active{color:var(--teal);}
+@media(max-width:800px){
+  .mobile-nav{display:block;}
+  .navbar .nav-menu{display:none;}
+  .main-content{padding-bottom:calc(5rem + env(safe-area-inset-bottom,0px));}
+}
+
+</style>
+</head>
+<body>
+
+<!-- PARTICLES -->
+<div id="particles"></div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <span class="login-logo">Γ</span>
+    <h1 class="login-title">GAMMA</h1>
+    <p class="login-sub">Système de gestion de stock intelligent</p>
+    <div class="login-form">
+      <div class="login-input-wrap">
+        <span>📧</span>
+        <input type="email" id="loginUser" class="login-input" placeholder="Adresse e-mail" autocomplete="email"/>
+      </div>
+      <div class="login-input-wrap">
+        <span>🔑</span>
+        <input type="password" id="loginPass" class="login-input" placeholder="Mot de passe" autocomplete="current-password"/>
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <button class="login-btn" id="loginBtn" onclick="tryLogin()">
+        <span id="loginBtnText">Accéder à Gamma →</span>
+        <span id="loginBtnSpinner" style="display:none">⏳ Connexion…</span>
+      </button>
+      <button class="btn btn-ghost" style="justify-content:center;width:100%;padding:0.9rem" onclick="startDemoMode()">
+        Lancer une démo sans compte
+      </button>
+    </div>
+    <p class="login-hint">Propulsé par Firebase · Synchronisation temps réel</p>
+  </div>
+</div>
+
+<!-- LOGOUT OVERLAY -->
+<div id="logoutOverlay">
+  <div class="logout-emoji">👋</div>
+  <div class="logout-text">À bientôt !</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand" onclick="navigateTo('dashboard')">
+        <span style="font-size:1.6rem;background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Playfair Display',serif;font-weight:900;">Γ</span>
+        <span class="nav-brand-gamma">GAMMA</span>
+        <span class="nav-brand-sub">Stock</span>
+      </div>
+      <div class="nav-menu">
+        <a href="#" data-page="dashboard" class="nav-link active">📊 Dashboard</a>
+        <a href="#" data-page="service" class="nav-link">🍺 Service</a>
+        <a href="#" data-page="gamma" class="nav-link">📦 Stock</a>
+        <a href="#" data-page="commande" class="nav-link">🛒 Commandes</a>
+        <a href="#" data-page="intelligence" class="nav-link">🧠 Intelligence</a>
+        <a href="#" data-page="ventes" class="nav-link">💰 Ventes</a>
+        <a href="#" data-page="equipe" class="nav-link">👥 Équipe</a>
+        <a href="#" data-page="recettes" class="nav-link">📋 Recettes</a>
+      </div>
+      <div class="nav-right">
+        <button class="notif-bell-btn" onclick="toggleNotifPanel()" title="Notifications">
+          🔔
+          <span class="notif-badge" id="notifBadge">0</span>
+        </button>
+        <div class="user-badge">
+          <div class="user-avatar" id="userAvatar">A</div>
+          <span id="userName">Admin</span>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Déconnexion</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="page active">
+      <div class="welcome-card">
+        <div class="welcome-time" id="welcomeEmoji">☀️</div>
+        <div class="welcome-text">
+          <h3 id="welcomeMsg">Bonjour, <span id="dashName">Admin</span> !</h3>
+          <p id="welcomeSub">Voici votre tableau de bord Gamma en temps réel</p>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card s-teal" style="animation-delay:0.05s">
+          <div class="stat-icon">📦</div>
+          <div><div class="stat-value" id="d-totalProduits">—</div><div class="stat-label">Produits en stock</div></div>
+        </div>
+        <div class="stat-card s-gold" style="animation-delay:0.1s">
+          <div class="stat-icon">💰</div>
+          <div><div class="stat-value" id="d-valeurStock">—</div><div class="stat-label">Valeur totale du stock</div></div>
+        </div>
+        <div class="stat-card s-violet" style="animation-delay:0.15s">
+          <div class="stat-icon">👥</div>
+          <div><div class="stat-value" id="d-equipe">—</div><div class="stat-label">Équipe présente</div></div>
+        </div>
+        <div class="stat-card s-red" style="animation-delay:0.2s">
+          <div class="stat-icon">⚠️</div>
+          <div><div class="stat-value" id="d-alertes">—</div><div class="stat-label">Alertes stock actives</div></div>
+        </div>
+      </div>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-header"><h2>⚡ Alertes Critiques</h2><span class="badge badge-red" id="d-criticalBadge">0</span></div>
+          <div class="card-body" id="d-stockAlerts">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2>📡 Activité en direct</h2></div>
+          <div class="card-body" id="d-activity">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2>🏆 Top Produits Vendus</h2></div>
+          <div class="card-body" id="d-topProduits">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2>👥 Équipe ce soir</h2></div>
+          <div class="card-body" id="d-equipeResume">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h2>🎯 Pilotage express</h2><span class="badge badge-teal" id="d-businessMode">Live</span></div>
+          <div class="card-body" id="d-businessPilot">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GAMMA STOCK -->
+    <section id="gamma" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">Γ <span>Stock Gamma</span></h1>
+          <p class="page-sub">Inventaire temps réel · synchronisé avec toute l'équipe</p>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" onclick="toggleInventoryMode()" id="invModeBtn">📋 Mode inventaire</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetStock()" title="Réinitialiser avec les produits réels C10/Valrhona/Foodex">🔄 Réinitialiser</button>
+          <button class="btn btn-teal" onclick="openAddProduitGamma()">+ Nouveau produit</button>
+        </div>
+      </div>
+
+      <!-- Inventory mode banner -->
+      <div class="inv-banner" id="invBanner">
+        <span style="font-size:1.4rem">📋</span>
+        <div style="flex:1"><strong style="color:var(--gold)">Mode inventaire actif</strong> — Cliquez sur un produit pour mettre à jour sa quantité réelle</div>
+        <button class="btn btn-red btn-sm" onclick="toggleInventoryMode()">Quitter</button>
+      </div>
+
+      <!-- Search + filters -->
+      <div class="gamma-top">
+        <div class="gamma-search-wrap">
+          <input type="text" class="gamma-search" id="gammaSearch" placeholder="Rechercher un produit…" oninput="renderGammaStock()"/>
+        </div>
+        <div class="gamma-cat-filters">
+          <button class="gamma-cat-chip active" onclick="setGammaCat(this,'all')">Tout</button>
+          <button class="gamma-cat-chip" onclick="setGammaCat(this,'spiritueux')">🥃 Spiritueux</button>
+          <button class="gamma-cat-chip" onclick="setGammaCat(this,'bieres')">🍺 Bières</button>
+          <button class="gamma-cat-chip" onclick="setGammaCat(this,'vins')">🍷 Vins</button>
+          <button class="gamma-cat-chip" onclick="setGammaCat(this,'softs')">🥤 Softs</button>
+          <button class="gamma-cat-chip" onclick="setGammaCat(this,'sirops')">🍯 Sirops</button>
+          <button class="gamma-cat-chip" onclick="setGammaCat(this,'garnitures')">🍋 Garnitures</button>
+          <button class="gamma-cat-chip" onclick="setGammaCat(this,'autre')">📦 Autre</button>
+        </div>
+      </div>
+
+      <div class="gamma-grid" id="gammaGrid">
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTELLIGENCE -->
+    <section id="intelligence" class="page">
+      <div class="page-header">
+        <h1 class="page-title">🧠 <span>Intelligence Gamma</span></h1>
+        <p class="page-sub">Analyse prédictive · suggestions de réapprovisionnement · tendances</p>
+      </div>
+      <div class="intel-grid">
+        <div class="intel-card">
+          <div class="intel-card-title">⚡ Score de santé du stock</div>
+          <div style="text-align:center">
+            <div class="score-ring" id="scoreRing" style="border:4px solid var(--teal);background:rgba(0,210,200,0.06);">
+              <div>
+                <div class="score-value" id="scoreValue">—</div>
+                <div style="font-size:0.65rem;color:var(--muted)">/100</div>
+              </div>
+            </div>
+            <div class="score-label" id="scoreLabel">Calcul en cours…</div>
+          </div>
+        </div>
+
+        <div class="intel-card" style="grid-column:span 2;">
+          <div class="intel-card-title">📊 Consommation hebdomadaire (7 derniers jours)</div>
+          <div class="chart-container"><canvas id="consumptionChart"></canvas></div>
+        </div>
+
+        <div class="intel-card" style="grid-column:1/-1;">
+          <div class="intel-card-title">🔄 Réapprovisionnements suggérés par Gamma</div>
+          <div id="reorderList">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+
+        <div class="intel-card">
+          <div class="intel-card-title">💬 Diffusion équipe</div>
+          <div class="broadcast-box">
+            <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.8rem">Envoyer un message à toute l'équipe via Gamma</p>
+            <textarea class="form-ctrl" id="broadcastMsg" placeholder="Votre message pour l'équipe…" rows="3" style="resize:none;margin-bottom:0.8rem"></textarea>
+            <button class="btn btn-teal" style="width:100%" onclick="sendBroadcast()">📡 Diffuser le message</button>
+          </div>
+        </div>
+
+        <div class="intel-card">
+          <div class="intel-card-title">📈 Produits les plus consommés</div>
+          <div id="topConsumed">
+            <div class="loading-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VENTES -->
+    <section id="ventes" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">💰 <span>Ventes</span></h1>
+          <p class="page-sub">Enregistrez et suivez toutes les transactions</p>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <span style="color:var(--muted);font-size:0.85rem;align-self:center">Total : <strong id="ventesTotal" style="color:var(--gold)">—</strong></span>
+          <button class="btn btn-teal" onclick="openAddVente()">+ Nouvelle Vente</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Produit</th><th>Qté</th><th>Prix unit.</th><th>Total</th><th>Par</th><th>Actions</th></tr></thead>
+          <tbody id="ventesBody"><tr><td colspan="7"><div class="loading-dots" style="margin:1rem 0"><span></span><span></span><span></span></div></td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section id="equipe" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">👥 <span>Équipe</span></h1>
+          <p class="page-sub">Gérez votre personnel et les présences</p>
+        </div>
+        <button class="btn btn-teal" onclick="openAddMembre()">+ Nouveau Membre</button>
+      </div>
+      <div class="member-grid" id="equipeGrid"></div>
+    </section>
+
+    <!-- SERVICE MODE -->
+    <section id="service" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">🍺 <span>Mode Service</span></h1>
+          <p class="page-sub">Interface rapide · grandes touches · stock en temps réel</p>
+        </div>
+        <span id="svc-alert-badge" class="badge badge-red" style="display:none;font-size:0.9rem;padding:0.5rem 1rem"></span>
+      </div>
+      <div style="position:relative;margin-bottom:1rem;">
+        <span style="position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);font-size:1rem">🔍</span>
+        <input type="text" class="gamma-search" id="serviceSearch" placeholder="Rechercher un produit…"
+          oninput="renderServiceMode()" style="padding-left:2.5rem;height:54px;font-size:1rem;width:100%"/>
+      </div>
+      <div class="svc-cat-bar">
+        <button class="svc-cat-chip active" onclick="setSvcCat(this,'all')">📦 Tout</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'spiritueux')">🥃 Spiritueux</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'bieres')">🍺 Bières</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'vins')">🍷 Vins</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'softs')">🥤 Softs</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'sirops')">🍯 Sirops</button>
+        <button class="svc-cat-chip" onclick="setSvcCat(this,'garnitures')">🍋 Garnitures</button>
+      </div>
+      <div class="service-grid" id="serviceGrid">
+        <div class="empty-state"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+      </div>
+    </section>
+
+    <!-- COMMANDES -->
+    <section id="commande" class="page">
+      <div class="page-header-row">
+        <div>
+          <h1 class="page-title">🛒 <span>Commandes</span></h1>
+          <p class="page-sub">Bons de commande par fournisseur · copiez et envoyez en WhatsApp</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="renderCommande()">🔄 Actualiser</button>
+      </div>
+      <div id="commandeContent">
+        <div class="empty-state"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+      </div>
+    </section>
+
+    <!-- RECETTES -->
+    <section id="recettes" class="page">
+      <div class="page-header">
+        <h1 class="page-title">📋 Fiches <span>Recettes</span></h1>
+        <p class="page-sub">47 recettes pour l'été — cliquez pour voir les détails</p>
+      </div>
+      <div class="recipes-controls">
+        <div class="search-wrap">
+          <input type="text" class="search-input" id="recetteSearch" placeholder="Rechercher une recette…" oninput="filterRecettes()"/>
+        </div>
+        <div class="cat-filters">
+          <button class="cat-btn active" onclick="setCat(this,'all')">🍹 Tout</button>
+          <button class="cat-btn" onclick="setCat(this,'cocktail')">🍸 Cocktails</button>
+          <button class="cat-btn" onclick="setCat(this,'force')">❄️ Forces</button>
+          <button class="cat-btn" onclick="setCat(this,'smoothie')">🥤 Smoothies</button>
+          <button class="cat-btn" onclick="setCat(this,'bubble_tea')">🧋 Bubble Tea</button>
+          <button class="cat-btn" onclick="setCat(this,'the_glace')">🍵 Thés glacés</button>
+          <button class="cat-btn" onclick="setCat(this,'cafe')">☕ Cafés</button>
+          <button class="cat-btn" onclick="setCat(this,'dessert')">🍮 Desserts</button>
+        </div>
+      </div>
+      <div class="recipes-grid" id="recipesGrid"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="mnav-btn active" data-mobile-page="dashboard" onclick="navigateTo('dashboard')">
+      <span class="mnav-icon">📊</span><span class="mnav-label">Dashboard</span>
+    </button>
+    <button class="mnav-btn" data-mobile-page="service" onclick="navigateTo('service')">
+      <span class="mnav-icon">🍺</span><span class="mnav-label">Service</span>
+    </button>
+    <button class="mnav-btn" data-mobile-page="gamma" onclick="navigateTo('gamma')">
+      <span class="mnav-icon">📦</span><span class="mnav-label">Stock</span>
+    </button>
+    <button class="mnav-btn" data-mobile-page="commande" onclick="navigateTo('commande')">
+      <span class="mnav-icon">🛒</span><span class="mnav-label">Commande</span>
+    </button>
+    <button class="mnav-btn" data-mobile-page="recettes" onclick="navigateTo('recettes')">
+      <span class="mnav-icon">🍸</span><span class="mnav-label">Recettes</span>
+    </button>
+  </div>
+</nav>
+
+<!-- NOTIFICATION PANEL OVERLAY -->
+<div class="notif-overlay" id="notifOverlay" onclick="toggleNotifPanel()"></div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-header">
+    <span class="notif-panel-title">🔔 Notifications Gamma</span>
+    <button class="notif-close" onclick="toggleNotifPanel()">✕</button>
+  </div>
+  <div class="notif-list" id="notifList">
+    <div class="notif-empty">Aucune notification</div>
+  </div>
+  <div class="notif-actions">
+    <button class="btn btn-ghost btn-sm" style="flex:1" onclick="markAllRead()">✓ Tout marquer comme lu</button>
+    <button class="btn btn-red btn-sm" onclick="clearAllNotifs()">🗑 Effacer</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-overlay" onclick="closeModal()"></div>
+  <div class="modal-box">
+    <div class="modal-header">
+      <div>
+        <span class="modal-emoji" id="modalEmoji"></span>
+        <div class="modal-title-text" id="modalTitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="app.js" defer></script>
+</body>
+</html>
