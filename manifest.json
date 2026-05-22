@@ -1,0 +1,17 @@
+{
+  "name": "GAMMA — Gestion de Stock",
+  "short_name": "GAMMA",
+  "description": "Système de gestion de stock intelligent pour bar",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a12",
+  "theme_color": "#00d2c8",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='32' fill='%230a0a12'/%3E%3Ctext x='96' y='150' text-anchor='middle' font-size='140' fill='%2300d2c8' font-family='serif'%3E%CE%93%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -163,8 +163,10 @@ function who() { return me() ? me().email : 'inconnu'; }
 window._showApp = function(user) {
   const ls = document.getElementById('loginScreen');
   if (!ls) return;
+  if (window._removeFailsafe) window._removeFailsafe();
   ls.classList.add('hiding');
   setTimeout(() => {
+    ls.classList.add('hidden');
     ls.style.display = 'none';
     const appEl = document.getElementById('app');
     if (!appEl) return;
