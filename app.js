@@ -198,12 +198,14 @@ window._showApp = function(user) {
     ls.style.display = 'none';
     const appEl = document.getElementById('app');
     if (!appEl) return;
-    appEl.style.display = 'block';
+    appEl.style.display = 'flex';
     requestAnimationFrame(() => appEl.classList.add('visible'));
     const name = (user.email || '').split('@')[0];
     const disp = name.charAt(0).toUpperCase() + name.slice(1);
     setEl('userName', disp);
     setEl('userAvatar', disp.charAt(0).toUpperCase());
+    setEl('sidebarAvatar', disp.charAt(0).toUpperCase());
+    setEl('sidebarUserName', disp);
     setEl('dashName', disp);
     updateWelcome(disp);
     initApp();
@@ -300,9 +302,10 @@ function initApp() {
   initClock();
 
   // Navigation
-  document.querySelectorAll('.nav-link').forEach(link =>
+  document.querySelectorAll('.nav-link,.sidebar-link').forEach(link =>
     link.addEventListener('click', e => { e.preventDefault(); navigateTo(link.dataset.page); })
   );
+  if (window.lucide) window.lucide.createIcons();
 
   // Event delegation — gamma stock grid
   const grid = document.getElementById('gammaGrid');
@@ -327,12 +330,11 @@ function initApp() {
 
 function navigateTo(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.nav-link,.sidebar-link').forEach(l => l.classList.remove('active'));
   document.querySelectorAll('.mnav-btn').forEach(b => b.classList.toggle('active', b.dataset.mobilePage === page));
   const pageEl = document.getElementById(page);
   if (pageEl) pageEl.classList.add('active');
-  const link = document.querySelector(`[data-page="${page}"]`);
-  if (link) link.classList.add('active');
+  document.querySelectorAll(`[data-page="${page}"]`).forEach(l => l.classList.add('active'));
   if (page === 'intelligence') loadIntelligence();
   if (page === 'ventes')       renderVentes();
   if (page === 'service')      renderServiceMode();

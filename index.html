@@ -14,6 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GAMMA">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
 
 <!-- Firebase Auth + Firestore (ES module) -->
 <script type="module">
@@ -119,7 +120,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--night);color:var(--text);
 
 /* ── APP ── */
 #app{display:none;min-height:100vh;position:relative;z-index:1;}
-#app.visible{display:block;animation:appReveal 0.6s ease both;}
+#app.visible{display:flex !important;animation:appReveal 0.6s ease both;}
 @keyframes appReveal{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
 
 /* ── NAVBAR ── */
@@ -537,6 +538,77 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .qa-icon{font-size:1.5rem;}
 .qa-label{font-size:0.82rem;font-weight:600;color:var(--muted);}
 .qa-value{font-size:1rem;font-weight:700;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;flex-shrink:0;background:var(--deep);border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:90;overflow:hidden;}
+.app-body{flex:1;margin-left:240px;min-width:0;display:flex;flex-direction:column;}
+.sidebar-logo{padding:1.5rem 1.2rem 1.2rem;display:flex;align-items:center;gap:0.75rem;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;transition:background 0.2s;}
+.sidebar-logo:hover{background:rgba(255,255,255,0.03);}
+.sidebar-gamma-mark{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--teal),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.sidebar-brand-text{display:flex;flex-direction:column;}
+.sidebar-brand-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:900;color:var(--text);line-height:1.1;}
+.sidebar-brand-sub{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.14em;margin-top:2px;}
+.sidebar-nav{flex:1;overflow-y:auto;padding:1rem 0.75rem;display:flex;flex-direction:column;gap:0.1rem;scrollbar-width:none;}
+.sidebar-nav::-webkit-scrollbar{display:none;}
+.sidebar-section-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);padding:0.9rem 0.9rem 0.3rem;font-weight:700;opacity:0.5;display:block;}
+.sidebar-link{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.9rem;border-radius:10px;color:var(--muted);text-decoration:none;font-size:0.87rem;font-weight:500;transition:all 0.2s;border:1px solid transparent;position:relative;overflow:hidden;white-space:nowrap;}
+.sidebar-link:hover{color:var(--text);background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.06);}
+.sidebar-link.active{color:var(--teal);background:rgba(0,210,200,0.08);border-color:rgba(0,210,200,0.18);}
+.sidebar-link.active::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:3px;background:linear-gradient(135deg,var(--teal),var(--violet));border-radius:0 3px 3px 0;}
+.sidebar-link svg{width:17px;height:17px;stroke-width:1.9;flex-shrink:0;}
+.sidebar-link-label{flex:1;}
+.sidebar-footer{padding:1rem 0.75rem;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:0.7rem;flex-shrink:0;}
+.sidebar-avatar{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--teal),var(--violet));display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;color:#fff;flex-shrink:0;}
+.sidebar-user-info{flex:1;min-width:0;}
+.sidebar-user-name{font-size:0.84rem;font-weight:600;color:var(--text);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sidebar-user-role{font-size:0.68rem;color:var(--muted);display:block;}
+.sidebar-logout-btn{width:30px;height:30px;border-radius:7px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.sidebar-logout-btn:hover{background:rgba(239,68,68,0.22);transform:scale(1.08);}
+.sidebar-logout-btn svg{width:14px;height:14px;}
+
+/* ── NAVBAR as TOPBAR on desktop ── */
+@media(min-width:801px){
+  .navbar .nav-brand{display:none;}
+  .navbar .nav-menu{display:none !important;}
+  .nav-right .logout-btn{display:none;}
+  .nav-container{justify-content:flex-end;}
+}
+
+/* ── PREMIUM STAT ICON CIRCLES ── */
+.stat-icon{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.s-teal .stat-icon{background:rgba(0,210,200,0.12);border:1px solid rgba(0,210,200,0.2);}
+.s-gold .stat-icon{background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.2);}
+.s-violet .stat-icon{background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.2);}
+.s-green .stat-icon{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2);}
+.s-red .stat-icon{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.2);}
+
+/* ── ENHANCED LOGIN MESH ── */
+.login-mesh{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.login-mesh-orb{position:absolute;border-radius:50%;}
+.o1{width:500px;height:500px;top:-200px;left:-150px;background:radial-gradient(circle,rgba(0,210,200,0.14) 0%,transparent 70%);animation:orbDrift1 9s ease-in-out infinite alternate;}
+.o2{width:400px;height:400px;bottom:-150px;right:-100px;background:radial-gradient(circle,rgba(168,85,247,0.12) 0%,transparent 70%);animation:orbDrift2 11s ease-in-out infinite alternate;}
+.o3{width:300px;height:300px;top:50%;right:5%;background:radial-gradient(circle,rgba(245,200,66,0.06) 0%,transparent 70%);animation:orbDrift3 7s ease-in-out infinite alternate;}
+@keyframes orbDrift1{from{transform:translate(0,0);}to{transform:translate(60px,30px);}}
+@keyframes orbDrift2{from{transform:translate(0,0);}to{transform:translate(-40px,-25px);}}
+@keyframes orbDrift3{from{transform:translateY(0);}to{transform:translateY(-40px);}}
+.login-box{backdrop-filter:blur(40px) saturate(180%) !important;background:rgba(13,10,30,0.88) !important;}
+
+/* ── ENHANCED WELCOME CARD ── */
+.welcome-card{position:relative;overflow:hidden;}
+.welcome-card::after{content:'';position:absolute;top:-40%;right:-5%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(0,210,200,0.07) 0%,transparent 70%);pointer-events:none;}
+
+/* ── CARD DEPTH UPGRADE ── */
+.card:hover{box-shadow:0 20px 60px rgba(0,0,0,0.5);border-color:rgba(255,255,255,0.1);transform:translateY(-2px);}
+.card{transition:all 0.3s cubic-bezier(0.4,0,0.2,1);}
+
+/* ── PAGE TRANSITION ── */
+@keyframes pageIn{from{opacity:0;transform:translateY(16px) scale(0.99);}to{opacity:1;transform:none;}}
+
+/* ── MOBILE: hide sidebar ── */
+@media(max-width:800px){
+  .sidebar{display:none;}
+  .app-body{margin-left:0;}
+}
 </style>
 
 </head>
@@ -558,6 +630,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <!-- LOGIN SCREEN -->
 <div id="loginScreen">
+  <div class="login-mesh"><div class="login-mesh-orb o1"></div><div class="login-mesh-orb o2"></div><div class="login-mesh-orb o3"></div></div>
   <div class="login-box">
     <span class="login-logo">Γ</span>
     <h1 class="login-title">GAMMA</h1>
@@ -590,6 +663,39 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 
 <!-- APP -->
 <div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-logo" onclick="navigateTo('dashboard')">
+      <span class="sidebar-gamma-mark">Γ</span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-name">GAMMA</span>
+        <span class="sidebar-brand-sub">Stock Manager</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <span class="sidebar-section-label">Navigation</span>
+      <a href="#" class="sidebar-link active" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span class="sidebar-link-label">Dashboard</span></a>
+      <a href="#" class="sidebar-link" data-page="service"><i data-lucide="activity"></i><span class="sidebar-link-label">Service</span></a>
+      <a href="#" class="sidebar-link" data-page="gamma"><i data-lucide="package"></i><span class="sidebar-link-label">Stock Gamma</span></a>
+      <a href="#" class="sidebar-link" data-page="commande"><i data-lucide="shopping-cart"></i><span class="sidebar-link-label">Commandes</span></a>
+      <span class="sidebar-section-label">Analytique</span>
+      <a href="#" class="sidebar-link" data-page="intelligence"><i data-lucide="bar-chart-2"></i><span class="sidebar-link-label">Intelligence</span></a>
+      <a href="#" class="sidebar-link" data-page="ventes"><i data-lucide="trending-up"></i><span class="sidebar-link-label">Ventes</span></a>
+      <span class="sidebar-section-label">Gestion</span>
+      <a href="#" class="sidebar-link" data-page="equipe"><i data-lucide="users"></i><span class="sidebar-link-label">Équipe</span></a>
+      <a href="#" class="sidebar-link" data-page="recettes"><i data-lucide="book-open"></i><span class="sidebar-link-label">Recettes</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar" id="sidebarAvatar">A</div>
+      <div class="sidebar-user-info">
+        <span class="sidebar-user-name" id="sidebarUserName">Admin</span>
+        <span class="sidebar-user-role">Gérant Gamma</span>
+      </div>
+      <button class="sidebar-logout-btn" onclick="doLogout()" title="Déconnexion"><i data-lucide="log-out"></i></button>
+    </div>
+  </aside>
+  <!-- APP BODY -->
+  <div class="app-body">
   <!-- NAVBAR -->
   <nav class="navbar">
     <div class="nav-container">
@@ -877,6 +983,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     </section>
 
   </main>
+  </div><!-- end .app-body -->
 </div>
 
 <!-- MOBILE BOTTOM NAV -->
